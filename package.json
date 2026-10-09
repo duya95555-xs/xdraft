@@ -1,14 +1,14 @@
 {
-  "name": "mydraft",
+  "name": "xdraft",
   "version": "1.0.1",
   "private": true,
   "description": "Open Source Wireframing Tool",
   "homepage": "https://mydraft.cc",
   "author": {
-    "name": "mydraft UOS packaging",
+    "name": "xdraft UOS packaging",
     "email": "18101885578@139.com"
   },
-  "desktopName": "mydraft.desktop",
+  "desktopName": "xdraft.desktop",
   "main": "electron/main.js",
   "scripts": {
     "start": "vite --host",
@@ -117,8 +117,8 @@
     "webdriverio": "^9.16.2"
   },
   "build": {
-    "appId": "cc.mydraft.app",
-    "productName": "mydraft",
+    "appId": "cc.xdraft.app",
+    "productName": "xdraft",
     "copyright": "Copyright (c) Sebastian Stehle. All rights reserved.",
     "electronLanguages": [
       "zh-CN",
@@ -139,7 +139,7 @@
       "syncDesktopName": true,
       "desktop": {
         "entry": {
-          "Name": "mydraft",
+          "Name": "xdraft",
           "Comment": "Diagram editor"
         }
       },
@@ -160,7 +160,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "mydraft"
+      "shortcutName": "xdraft"
     }
   }
 }

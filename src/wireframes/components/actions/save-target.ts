@@ -12,7 +12,7 @@ import { hasLocalDiagrams, isPackagedApp } from '@app/core';
 
 export type SaveTarget = 'serverFile' | 'cloud';
 
-const SAVE_TARGET_KEY = 'mydraft.saveTarget';
+const SAVE_TARGET_KEY = 'xdraft.saveTarget';
 
 // 云端入口是否可用。
 //

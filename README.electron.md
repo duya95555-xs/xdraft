@@ -7,7 +7,7 @@
 新增文件：
 
 ```
-mydraft-ui/
+xdraft-ui/
 ├── electron/
 │   ├── main.js          # Electron 主进程
 │   ├── preload.js       # 预加载脚本（桥接渲染进程与 Node.js）
@@ -52,7 +52,7 @@ electron-builder 26 的配置是**严格 schema 校验**，字段写错会直接
 - **`linux.desktop` 必须是嵌套形式**：
 
   ```json
-  "desktop": { "entry": { "Name": "mydraft", "Comment": "Diagram editor" } }
+  "desktop": { "entry": { "Name": "xdraft", "Comment": "Diagram editor" } }
   ```
 
   写成平铺的 `"desktop": { "Name": ... }` 会校验失败（`configuration.linux.desktop` 报错）。
@@ -76,7 +76,7 @@ electron-builder 26 的配置是**严格 schema 校验**，字段写错会直接
 
   ```json
   // package.json 顶层
-  "desktopName": "mydraft.desktop",
+  "desktopName": "xdraft.desktop",
   // build.linux 内
   "syncDesktopName": true
   ```
@@ -121,8 +121,8 @@ Vite dev server 在 `localhost:5173` 启动，Electron 窗口自动加载该地�
 ### 4.2 完整构建命令
 
 ```bash
-# 1. 进入代码目录（如果是从 mydraft-deploy.zip 解压的，就是 ~/mydraft）
-cd ~/mydraft
+# 1. 进入代码目录（如果是从 xdraft-deploy.zip 解压的，就是 ~/xdraft）
+cd ~/xdraft
 
 # 2. 配国内镜像（否则 electron / electron-builder 二进制会从 GitHub 龟速下载）
 npm config set registry https://registry.npmmirror.com
@@ -144,9 +144,9 @@ npm run electron:build:linux-arm64
 
 | 文件名                                  | 格式      | 说明                       |
 |-----------------------------------------|-----------|---------------------------|
-| `mydraft-1.0.0-arm64.AppImage`          | AppImage  | 免安装，双击运行            |
-| `mydraft_1.0.0_arm64.deb`               | DEB       | UOS / Debian / Ubuntu 包   |
-| `mydraft-1.0.0.arm64.rpm`               | RPM       | CentOS / openEuler 包      |
+| `xdraft-1.0.0-arm64.AppImage`          | AppImage  | 免安装，双击运行            |
+| `xdraft_1.0.0_arm64.deb`               | DEB       | UOS / Debian / Ubuntu 包   |
+| `xdraft-1.0.0.arm64.rpm`               | RPM       | CentOS / openEuler 包      |
 | `linux-arm64-unpacked/`                 | 目录      | 解压后的全部文件            |
 
 ### 4.3 仅打包不下载 Electron（离线构建）
@@ -176,11 +176,11 @@ docker run --rm --platform linux/arm64 \
 
 ```bash
 # 1. 复制到 UOS 机器
-scp release/mydraft-1.0.0-arm64.AppImage user@uos:~/
+scp release/xdraft-1.0.0-arm64.AppImage user@uos:~/
 
 # 2. 在 UOS 终端中授权并运行
-chmod +x mydraft-1.0.0-arm64.AppImage
-./mydraft-1.0.0-arm64.AppImage
+chmod +x xdraft-1.0.0-arm64.AppImage
+./xdraft-1.0.0-arm64.AppImage
 ```
 
 #### 可选：集成到启动器
@@ -188,44 +188,44 @@ chmod +x mydraft-1.0.0-arm64.AppImage
 ```bash
 # 复制到应用程序目录
 mkdir -p ~/.local/share/applications
-cp mydraft-1.0.0-arm64.AppImage ~/.local/bin/mydraft
+cp xdraft-1.0.0-arm64.AppImage ~/.local/bin/xdraft
 
 # 创建 desktop 条目
-cat > ~/.local/share/applications/mydraft.desktop << 'EOF'
+cat > ~/.local/share/applications/xdraft.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
-Name=mydraft
+Name=xdraft
 Comment=Diagram Editor
-Exec=/home/用户名/.local/bin/mydraft/mydraft-1.0.0-arm64.AppImage
-Icon=/home/用户名/.local/share/icons/mydraft.png
+Exec=/home/用户名/.local/bin/xdraft/xdraft-1.0.0-arm64.AppImage
+Icon=/home/用户名/.local/share/icons/xdraft.png
 Categories=Graphics;
 EOF
 
 # 复制图标
 mkdir -p ~/.local/share/icons
-cp electron/icon.png ~/.local/share/icons/mydraft.png
+cp electron/icon.png ~/.local/share/icons/xdraft.png
 ```
 
 ### 5.2 deb 包安装（适合系统级部署）
 
 ```bash
 # 1. 复制到 UOS 机器
-scp release/mydraft_1.0.0_arm64.deb user@uos:~/
+scp release/xdraft_1.0.0_arm64.deb user@uos:~/
 
 # 2. 在 UOS 终端中安装
-sudo dpkg -i mydraft_1.0.0_arm64.deb
+sudo dpkg -i xdraft_1.0.0_arm64.deb
 # 如有依赖缺失：
 sudo apt-get install -f
 
-# 3. 启动 mydraft
-mydraft
-# 或在启动器菜单中搜索 "mydraft" 点击运行
+# 3. 启动 xdraft
+xdraft
+# 或在启动器菜单中搜索 "xdraft" 点击运行
 ```
 
 #### 卸载
 
 ```bash
-sudo apt remove mydraft
+sudo apt remove xdraft
 ```
 
 ### 5.3 离线部署注意事项
@@ -257,13 +257,13 @@ UOS ARM64 满足以上全部要求。
 
 ```bash
 # 查看详细启动日志
-./mydraft-1.0.0-arm64.AppImage --enable-logging
+./xdraft-1.0.0-arm64.AppImage --enable-logging
 
 # 强制使用软件渲染（若 GPU 兼容问题）
-./mydraft-1.0.0-arm64.AppImage --disable-gpu
+./xdraft-1.0.0-arm64.AppImage --disable-gpu
 
 # 检查依赖完整性
-ldd release/linux-arm64-unpacked/mydraft | grep "not found"
+ldd release/linux-arm64-unpacked/xdraft | grep "not found"
 ```
 
 ### 6.3 UOS 安全策略
@@ -285,7 +285,7 @@ ldd release/linux-arm64-unpacked/mydraft | grep "not found"
 .\deploy-to-uos.ps1
 ```
 
-输出 `release/mydraft-deploy.zip`，通常只有 10-30 MB。
+输出 `release/xdraft-deploy.zip`，通常只有 10-30 MB。
 
 ### 7.2 手动打包（如果不用脚本）
 
@@ -308,7 +308,7 @@ README.electron.md
 **顶层目录（整体保留）：**
 
 ```
-electron/        （main.js、preload.js、icon.png、mydraft.desktop）
+electron/        （main.js、preload.js、icon.png、xdraft.desktop）
 src/             （但排除 *.spec.ts、*.stories.tsx 等测试/演示文件）
 public/          （静态资源：favicon、logo 等）
 ```
@@ -331,11 +331,11 @@ public/          （静态资源：favicon、logo 等）
 
 ```bash
 # 1. 发送
-scp release/mydraft-deploy.zip user@uos-host:~/
+scp release/xdraft-deploy.zip user@uos-host:~/
 
 # 2. 在 UOS 上解压
 ssh user@uos-host
-unzip mydraft-deploy.zip -d ~/mydraft && cd ~/mydraft
+unzip xdraft-deploy.zip -d ~/xdraft && cd ~/xdraft
 
 # 3. 确认 Node 已就绪（未装则按 §4.1 安装）
 node -v && npm -v                    # 需 >= 20.19 / 22.12，推荐 24.x
@@ -399,7 +399,7 @@ function AppRouter({ children }: { children: ReactNode }) {
 用终端启动即可看到渲染进程的 warning/error；要 DevTools：
 
 ```bash
-MYDRAFT_DEBUG=1 ./release/mydraft-1.0.0-arm64.AppImage
+XDRAFT_DEBUG=1 ./release/xdraft-1.0.0-arm64.AppImage
 ```
 
 ### 7.7 白屏的第三个原因：外链图标字体阻塞首帧
@@ -436,7 +436,7 @@ for (const link of Array.from(document.querySelectorAll<HTMLLinkElement>('link[d
 ### 7.8 AppImage 在 arm64 上报 `libz.so` 缺失（与代码无关）
 
 ```
-./mydraft-1.0.0-arm64.AppImage: error while loading shared libraries:
+./xdraft-1.0.0-arm64.AppImage: error while loading shared libraries:
 libz.so: cannot open shared object file: No such file or directory
 ```
 
@@ -460,7 +460,7 @@ sudo ln -s /usr/lib/aarch64-linux-gnu/libz.so.1 /usr/lib/aarch64-linux-gnu/libz.
 # ③ 完全不动系统（免 sudo）：本地造一个软链目录，让 ld.so 去找
 mkdir -p ~/.local/libzfix
 ln -sf /usr/lib/aarch64-linux-gnu/libz.so.1 ~/.local/libzfix/libz.so
-LD_LIBRARY_PATH=~/.local/libzfix ./mydraft-1.0.0-arm64.AppImage
+LD_LIBRARY_PATH=~/.local/libzfix ./xdraft-1.0.0-arm64.AppImage
 ```
 
 **对本项目最重要的一条**：`deb` 包**不需要** `libz.so`，完全不受这个问题影响。
@@ -474,16 +474,16 @@ LD_LIBRARY_PATH=~/.local/libzfix ./mydraft-1.0.0-arm64.AppImage
 
 ```
 release/
-├── mydraft_1.0.0_arm64.deb         # UOS / Deepin / Debian 系（arm64 首选，无需 libz.so）
-├── mydraft-1.0.0-arm64.AppImage    # 免安装试用（arm64 上需先补 libz.so，见 §7.8）
-├── mydraft-1.0.0.aarch64.rpm       # CentOS/openEuler 包
-├── linux-arm64-unpacked/           # 解压目录，可直接跑 ./mydraft（含排查用）
+├── xdraft_1.0.0_arm64.deb         # UOS / Deepin / Debian 系（arm64 首选，无需 libz.so）
+├── xdraft-1.0.0-arm64.AppImage    # 免安装试用（arm64 上需先补 libz.so，见 §7.8）
+├── xdraft-1.0.0.aarch64.rpm       # CentOS/openEuler 包
+├── linux-arm64-unpacked/           # 解压目录，可直接跑 ./xdraft（含排查用）
 └── builder-effective-config.yaml   # 构建配置记录
 ```
 
-> **包名由 `package.json` 的 `name` 字段决定**（当前为 `mydraft`）。
+> **包名由 `package.json` 的 `name` 字段决定**（当前为 `xdraft`）。
 > deb / rpm 的文件名与安装后的包名都取自它，所以卸载是
-> `sudo apt remove mydraft`；若把 `name` 改回 `mydraft.cc`，卸载命令也要跟着带上 `.cc`。
+> `sudo apt remove xdraft`；若把 `name` 改回 `mydraft.cc`，卸载命令也要跟着带上 `.cc`。
 > 注意 AppImage 的文件名走的是 `productName`，与 `name` 无关。
 > rpm 的架构后缀是 `aarch64`（不是 `arm64`）。
 

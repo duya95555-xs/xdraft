@@ -1,8 +1,8 @@
-# mydraft Electron 精简打包配置
+# xdraft Electron 精简打包配置
 # 用法: 把此文件和 slim-build.sh 放到源码根目录
 
-appId: cc.mydraft.app
-productName: mydraft
+appId: cc.xdraft.app
+productName: xdraft
 copyright: Copyright (c) Sebastian Stehle. All rights reserved.
 
 directories:
@@ -38,7 +38,7 @@ linux:
   syncDesktopName: true
   desktop:
     entry:
-      Name: mydraft
+      Name: xdraft
       Comment: Diagram editor
   target:
     - target: deb
@@ -49,4 +49,4 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
-  shortcutName: mydraft
+  shortcutName: xdraft

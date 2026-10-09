@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
-# mydraft 源码快照 —— 把「当前代码与结构」原样打包到 home 目录
+# xdraft 源码快照 —— 把「当前代码与结构」原样打包到 home 目录
 #
 # 用法：
-#     bash ~/mydraft/tools/save-snapshot.sh
+#     bash ~/xdraft/tools/save-snapshot.sh
 #
-# 产物：~/mydraft-src-backup-YYYYMMDD-HHMM.tar.gz
+# 产物：~/xdraft-src-backup-YYYYMMDD-HHMM.tar.gz
 #   - 命名与存放位置沿用既有惯例（与 20260918-0024 / 20260918-2312 一致）
 #   - 排除 node_modules / release* / dist-electron / dist / coverage / .git
 #   - 含 src / electron / tools / tests / public / 各类配置文件
@@ -14,7 +14,7 @@ set -euo pipefail
 
 PROJ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STAMP="$(date +%Y%m%d-%H%M)"
-OUT="$HOME/mydraft-src-backup-${STAMP}.tar.gz"
+OUT="$HOME/xdraft-src-backup-${STAMP}.tar.gz"
 
 cd "$PROJ"
 

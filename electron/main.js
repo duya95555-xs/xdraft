@@ -1,10 +1,17 @@
-// mydraft.cc Electron 主进程
+// xdraft Electron 主进程 (based on mydraft.cc)
 // 负责创建窗口、加载应用、处理应用级事件
 
 const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const fsp = require('fs/promises');
+
+// ── 品牌更名兼容 ────────────────────────────────────────────────────────────
+// 产品从 mydraft 更名 xdraft 后, Electron 会把 userData 目录切到
+// ~/.config/xdraft (跟随 productName), 老用户已保存的本机文档
+// (~/.config/mydraft/diagrams) 会"消失"。这里显式把 userData 固定在
+// 历史目录: 数据零迁移、旧文档继续可见。
+app.setPath('userData', path.join(app.getPath('appData'), 'mydraft'));
 
 // 开发环境检测
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -51,7 +58,7 @@ async function writeJsonAtomic(filePath, body) {
 }
 
 function registerIpcHandlers() {
-    ipcMain.handle('mydraft:diagram:list', async () => {
+    ipcMain.handle('xdraft:diagram:list', async () => {
         try {
             const dir = await ensureDiagramsDir();
             const entries = await fsp.readdir(dir);
@@ -77,19 +84,19 @@ function registerIpcHandlers() {
 
             return result;
         } catch (ex) {
-            console.error('[mydraft] 列出本机文档失败:', ex);
+            console.error('[xdraft] 列出本机文档失败:', ex);
 
             return [];
         }
     });
 
-    ipcMain.handle('mydraft:diagram:read', async (_event, name) => {
+    ipcMain.handle('xdraft:diagram:read', async (_event, name) => {
         const text = await fsp.readFile(resolveDiagramPath(name), 'utf8');
 
         return { name: sanitizeName(name), stored: JSON.parse(text) };
     });
 
-    ipcMain.handle('mydraft:diagram:write', async (_event, name, body) => {
+    ipcMain.handle('xdraft:diagram:write', async (_event, name, body) => {
         await ensureDiagramsDir();
 
         const safe = sanitizeName(name);
@@ -98,17 +105,17 @@ function registerIpcHandlers() {
         return { file: `local://${safe}`, name: safe, bytes };
     });
 
-    ipcMain.handle('mydraft:diagram:remove', async (_event, name) => {
+    ipcMain.handle('xdraft:diagram:remove', async (_event, name) => {
         await fsp.rm(resolveDiagramPath(name), { force: true });
 
         return true;
     });
 
-    ipcMain.handle('mydraft:diagram:saveAs', async (_event, body, suggestedName) => {
+    ipcMain.handle('xdraft:diagram:saveAs', async (_event, body, suggestedName) => {
         const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
             title: '另存为',
             defaultPath: path.join(app.getPath('documents'), `${sanitizeName(suggestedName)}.json`),
-            filters: [{ name: 'mydraft 文档', extensions: ['json'] }],
+            filters: [{ name: 'xdraft 文档', extensions: ['json'] }],
         });
 
         if (canceled || !filePath) {
@@ -121,7 +128,7 @@ function registerIpcHandlers() {
     });
 
     // 渲染进程询问完毕: allow=true 真关, false 取消。
-    ipcMain.handle('mydraft:window:closeConfirmed', (_event, allow) => {
+    ipcMain.handle('xdraft:window:closeConfirmed', (_event, allow) => {
         closeRequestPending = false;
 
         if (allow) {
@@ -164,11 +171,11 @@ function setupCloseGuard(win) {
         }
 
         closeRequestPending = true;
-        win.webContents.send('mydraft:window:beforeClose');
+        win.webContents.send('xdraft:window:beforeClose');
 
         setTimeout(() => {
             if (closeRequestPending) {
-                console.warn('[mydraft] 关窗确认超时, 直接关闭。');
+                console.warn('[xdraft] 关窗确认超时, 直接关闭。');
 
                 forceCloseWindow();
             }
@@ -182,7 +189,7 @@ function createMainWindow() {
         height: 900,
         minWidth: 1024,
         minHeight: 600,
-        title: 'mydraft.cc',
+        title: 'xdraft',
         icon: path.join(__dirname, 'icon.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -190,7 +197,7 @@ function createMainWindow() {
             nodeIntegration: false,
             sandbox: false,
             // preload 里读不到 app.isPackaged, 用它把真实值传过去。
-            additionalArguments: [`--mydraft-is-packaged=${app.isPackaged ? 'true' : 'false'}`],
+            additionalArguments: [`--xdraft-is-packaged=${app.isPackaged ? 'true' : 'false'}`],
         },
         show: false,
         backgroundColor: '#f5f5f5',
@@ -209,16 +216,16 @@ function createMainWindow() {
 
     // 诊断: 页面加载失败 / 渲染进程崩溃时把原因打到终端, 避免"白屏但没有任何提示"。
     mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
-        console.error(`[mydraft] 页面加载失败: ${errorCode} ${errorDescription} -> ${validatedURL}`);
+        console.error(`[xdraft] 页面加载失败: ${errorCode} ${errorDescription} -> ${validatedURL}`);
     });
 
     mainWindow.webContents.on('render-process-gone', (_event, details) => {
-        console.error(`[mydraft] 渲染进程异常退出: ${details && details.reason}`);
+        console.error(`[xdraft] 渲染进程异常退出: ${details && details.reason}`);
     });
 
     // 把渲染进程的 console 转发到终端(默认只转发 warning/error)。
-    // 需要看全部日志 + 打开 DevTools 时: MYDRAFT_DEBUG=1 ./mydraft-*.AppImage
-    const debugEnabled = !!process.env.MYDRAFT_DEBUG;
+    // 需要看全部日志 + 打开 DevTools 时: XDRAFT_DEBUG=1 ./xdraft-*.AppImage
+    const debugEnabled = !!process.env.XDRAFT_DEBUG;
 
     mainWindow.webContents.on('console-message', (...args) => {
         const first = args[0];

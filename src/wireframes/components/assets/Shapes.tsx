@@ -26,7 +26,7 @@ const FLOWCHART_SHAPES = new Set(['Rectangle', 'RoundedRectangle', 'Diamond']);
 // 分组标识(用于折叠状态)。折叠状态持久化到 localStorage 的键。
 const GROUP_FLOWCHART = 'flowchart';
 const GROUP_FORM = 'form';
-const COLLAPSED_STORAGE_KEY = 'mydraft.assetGroups.collapsed';
+const COLLAPSED_STORAGE_KEY = 'xdraft.assetGroups.collapsed';
 
 const keyBuilder = (shape: ShapeInfo, iconWidth: number) => {
     // The icon width is part of the key, because the Grid caches cells module-wide by this key.

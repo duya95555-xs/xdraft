@@ -163,7 +163,7 @@ export const App = () => {
                 <Layout className='screen-mode'>
                     <Layout.Header>
                         <div className='top-menu'>
-                            <img className='logo' src='logo.svg' alt='mydraft.cc' />
+                            <img className='logo' src='logo.svg' alt='xdraft' />
 
                             <div>
                                 <HistoryMenu />

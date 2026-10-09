@@ -61,7 +61,7 @@ export const ICON_FONT_FACE_CSS: string = [
 export function ensureIconFonts() {
     if (!ICON_FONT_FACE_CSS) {
         if (typeof console !== 'undefined') {
-            console.warn('[mydraft] 图标字体数据缺失, 画布上的 Icon 与图标面板可能显示异常。请执行 bash tools/fetch-icon-fonts.sh');
+            console.warn('[xdraft] 图标字体数据缺失, 画布上的 Icon 与图标面板可能显示异常。请执行 bash tools/fetch-icon-fonts.sh');
         }
 
         return;

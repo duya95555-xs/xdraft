@@ -7,7 +7,7 @@
 
 // Electron 桥。
 //
-// `electron/preload.js` 通过 contextBridge 暴露 `window.mydraftApp`。在普通浏览器里
+// `electron/preload.js` 通过 contextBridge 暴露 `window.xdraftApp`。在普通浏览器里
 // 它是 undefined —— 下面所有能力函数都会返回"不可用", 调用方据此回落到旧的 fetch 路径。
 
 export interface LocalDiagramInfo {
@@ -44,7 +44,7 @@ export interface DesktopBridge {
 }
 
 export function getDesktopBridge(): DesktopBridge | undefined {
-    return (window as any).mydraftApp;
+    return (window as any).xdraftApp;
 }
 
 // 能否通过 IPC 直接读写本机文档。浏览器 / preload 未加载时为 false。

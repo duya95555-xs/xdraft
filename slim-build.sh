@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# mydraft Electron 精简打包脚本（1.0.1+）
+# xdraft Electron 精简打包脚本（1.0.1+）
 #
 # 核心策略：
 #   · 不打包 node_modules（Vite 已经把所有 JS 依赖打包进 dist-electron/）
@@ -15,7 +15,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "================================="
-echo " mydraft 精简打包"
+echo " xdraft 精简打包"
 echo "================================="
 echo "工作目录: $ROOT_DIR"
 echo ""

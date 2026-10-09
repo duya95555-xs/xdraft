@@ -18,7 +18,7 @@ function buildStampPlugin(): Plugin {
         `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
     return {
-        name: 'mydraft-build-stamp',
+        name: 'xdraft-build-stamp',
         transformIndexHtml: (html: string) => html.replace(/__BUILD_STAMP__/g, stamp),
     };
 }
@@ -61,7 +61,7 @@ export default defineConfig({
                     }
                 }),
                 favicons('public/logo-square.svg', {
-                    appName: 'mydraft',
+                    appName: 'xdraft',
                     appDescription: 'Open Source Wireframing Tool',
                     developerName: 'Sebastian Stehle',
                     developerURL: 'https://suquidex.io',

@@ -27,7 +27,7 @@ export interface LogEntry {
 }
 
 const MAX_ENTRIES = 500;
-const STORAGE_KEY = 'mydraft.logs';
+const STORAGE_KEY = 'xdraft.logs';
 
 let buffer: LogEntry[] = load();
 
@@ -94,5 +94,5 @@ export function downloadLogs() {
 
     const blob = new Blob([`${text}\n`], { type: 'text/plain;charset=utf-8' });
 
-    saveAs(blob, 'mydraft-logs.txt');
+    saveAs(blob, 'xdraft-logs.txt');
 }

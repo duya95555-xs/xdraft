@@ -1,10 +1,10 @@
-# mydraft — UOS Desktop Edition
+# xdraft — UOS Desktop Edition
 
-> **English**: A desktop (Electron) port of [mydraft.cc](https://github.com/mydraft-cc/ui) — the open-source wireframing tool — targeted at UOS / Linux (arm64) and Windows, with offline-first improvements.
+> **English**: xdraft is a desktop (Electron) port of [mydraft.cc](https://github.com/mydraft-cc/ui) — the open-source wireframing tool — targeted at UOS / Linux (arm64) and Windows, with offline-first improvements.
 
-mydraft 是一款优秀的开源线框图工具（TypeScript + React + Redux），原项目地址：**https://github.com/mydraft-cc/ui** ，作者 Sebastian Stehle（mydraft.cc），MIT 许可证。
+xdraft 基于优秀的开源线框图工具（TypeScript + React + Redux），原项目地址：**https://github.com/mydraft-cc/ui** ，作者 Sebastian Stehle（mydraft.cc），MIT 许可证。
 
-本仓库是个人维护的**桌面增强版**：在原项目基础上完成 Electron 桌面封装、离线化改造与若干功能增强，面向 UOS（arm64）与 Windows 环境。
+xdraft 是个人维护的**桌面增强版**：在原项目基础上完成 Electron 桌面封装、离线化改造与若干功能增强，面向 UOS（arm64）与 Windows 环境。
 
 **致谢与尊重**：本项目的全部基础能力来自原项目 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)，没有他们的开源贡献就没有这个发行版。许可证见 [LICENSE](./LICENSE)（MIT，保留原版权声明）。
 

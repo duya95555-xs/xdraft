@@ -190,7 +190,7 @@ const CustomTitle = React.memo(() => {
     }
 
     return (
-        <Title text={`mydraft.cc - ${name} - ${status}`} />
+        <Title text={`xdraft - ${name} - ${status}`} />
     );
 });
 
