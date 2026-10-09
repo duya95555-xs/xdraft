@@ -47,6 +47,13 @@ export const ICON_FONT_FAMILIES: string[] = [
 export const ICON_FONT_FACE_CSS: string = [
     FONT_AWESOME_WOFF2 ? `@font-face{font-family:'${FONT_FAMILY_FONT_AWESOME}';src:url(${FONT_AWESOME_WOFF2}) format('woff2');font-display:block;}` : '',
     MATERIAL_ICONS_WOFF2 ? `@font-face{font-family:'${FONT_FAMILY_MATERIAL_ICONS}';src:url(${MATERIAL_ICONS_WOFF2}) format('woff2');font-display:block;}` : '',
+    // 字体"使用规则"必须随 @font-face 一起带上: 原先它们由 CDN CSS 提供,
+    // index.html 删掉 <link> 后 .fa / .material-icons 就失去了 font-family 声明,
+    // 元素退回系统字体栈 —— PUA 字形全部变成空心方块(tofu)。
+    // 以下取自 Font Awesome 4.7 与 Material Icons 官方 CSS 的核心属性;
+    // font-size 不写死, 由本地 Icons.scss 控制。
+    FONT_AWESOME_WOFF2 ? `.fa{font-family:'${FONT_FAMILY_FONT_AWESOME}';font-style:normal;font-weight:normal;line-height:1;display:inline-block;text-rendering:auto;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}` : '',
+    MATERIAL_ICONS_WOFF2 ? `.material-icons{font-family:'${FONT_FAMILY_MATERIAL_ICONS}';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;font-feature-settings:'liga';-webkit-font-smoothing:antialiased;}` : '',
 ].filter(x => !!x).join('\n');
 
 // 把图标字体注册到当前文档。data URI 是内联内容, 不走网络,
