@@ -24,7 +24,7 @@ export function buildStandaloneHtml(svgXml: string, title: string, background: s
 </head>
 <body>
 <div class="canvas">${svgXml}</div>
-<div class="footer">Exported by xdraft (based on mydraft.cc)</div>
+<div class="footer">Exported by Xdraft (based on mydraft.cc)</div>
 </body>
 </html>`;
 }
