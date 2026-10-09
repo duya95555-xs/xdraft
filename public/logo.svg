@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- xdraft wordmark. 原版 mydraft logo 文字已矢量化无法改字, 更名后用文字版重绘;
-     配色沿用原版的 #fda100, 尺寸沿用原 viewBox 比例 (179x50)。 -->
+     配色: 紫蓝渐变 #667eea → #764ba2, 尺寸沿用原 viewBox 比例 (179x50)。 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="179" height="50" viewBox="0 0 179 50" version="1.1" aria-label="xdraft">
+  <defs>
+    <linearGradient id="xdraft-brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
   <text x="0" y="39"
         font-family="Nunito, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif"
         font-size="46" font-weight="800" letter-spacing="-1.5"
-        fill="#fda100">xdraft</text>
+        fill="url(#xdraft-brand)">xdraft</text>
 </svg>
