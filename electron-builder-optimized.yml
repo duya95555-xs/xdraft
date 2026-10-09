@@ -33,7 +33,7 @@ asar: true
 
 linux:
   category: Graphics
-  icon: electron/icon.png
+  icon: electron/icons/icon_512.png
   synopsis: Open Source Wireframing Tool
   syncDesktopName: true
   desktop:
@@ -44,6 +44,9 @@ linux:
     - target: deb
       arch:
         - arm64
+
+win:
+  icon: electron/icons/icon.ico
 
 nsis:
   oneClick: false

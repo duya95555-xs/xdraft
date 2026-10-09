@@ -190,7 +190,7 @@ function createMainWindow() {
         minWidth: 1024,
         minHeight: 600,
         title: 'Xdraft',
-        icon: path.join(__dirname, 'icon.png'),
+        icon: path.join(__dirname, 'icons', 'icon_256.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
