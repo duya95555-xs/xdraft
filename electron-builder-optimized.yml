@@ -1,0 +1,52 @@
+# mydraft Electron 精简打包配置
+# 用法: 把此文件和 slim-build.sh 放到源码根目录
+
+appId: cc.mydraft.app
+productName: mydraft
+copyright: Copyright (c) Sebastian Stehle. All rights reserved.
+
+directories:
+  output: release-slim
+
+compression: maximum
+
+electronLanguages:
+  - zh-CN
+  - en-US
+
+# 关键：只打 Electron 主进程 + 前端构建产物，不打 node_modules
+# Vite 已经把所有依赖打包进 dist-electron/assets/*.js 了
+files:
+  - electron/**/*
+  - dist-electron/**/*
+  - public/**/*
+  # 只 unpack 运行时必需的原生 .node 文件
+  - "!node_modules"
+  - "node_modules/@img/sharp-linux-arm64/**"
+  - "node_modules/@esbuild/linux-arm64/**"
+
+asarUnpack:
+  - "node_modules/@img/sharp-linux-arm64/**"
+  - "node_modules/@esbuild/linux-arm64/**"
+
+asar: true
+
+linux:
+  category: Graphics
+  icon: electron/icon.png
+  synopsis: Open Source Wireframing Tool
+  syncDesktopName: true
+  desktop:
+    entry:
+      Name: mydraft
+      Comment: Diagram editor
+  target:
+    - target: deb
+      arch:
+        - arm64
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: mydraft

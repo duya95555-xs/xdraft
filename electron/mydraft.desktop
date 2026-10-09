@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=mydraft
+Name[zh_CN]=原型编辑器
+Comment=Open Source Wireframing Tool
+Comment[zh_CN]=开源原型编辑工具
+Exec=/opt/mydraft/mydraft %U
+Icon=/opt/mydraft/icon.png
+Terminal=false
+Categories=Graphics;Development;
+MimeType=application/json;
+StartupWMClass=mydraft

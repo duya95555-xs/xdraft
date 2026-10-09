@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" data-page-node-id="YzWrSZD1XKKxGksnGKfgdh">
+  <head data-page-node-id="g9QZrlJv1VmNxAALwcJUas">
+    <meta charset="utf-8" data-page-node-id="KG2rpXbszNxEDws54Z1N0b">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" data-page-node-id="WsLc5ewx8mwJLUJaXjFLJI">
+
+    <!--
+      图标字体(Material Icons / Font Awesome)原先走公共 CDN, 现改为内联进 bundle。
+
+      原因有两个:
+        1) 打包成 Electron 应用后页面走 file:// 协议, 机器离线(或被墙)时外链样式表
+           请求会一直挂着, 首帧迟迟出不来 —— 表现出来就是启动后长时间白屏;
+        2) CDN 拉不到字体时, 画布上的 Icon 和图标面板本来就是空的。
+
+      字体数据由 tools/fetch-icon-fonts.sh 在打包前生成到 src/fonts/icon-fonts.ts,
+      运行时由 src/index.tsx 的 ensureIconFonts() 以 @font-face 注入(data URI, 不走网络),
+      导出图片时同一份数据会被注入 SVG, 保证图标在 PNG 里不丢。
+
+      这里不再需要任何 <link>, 也没有网络请求。
+    -->
+
+    <!-- __BUILD_STAMP__ 由 vite.config.ts 的 buildStampPlugin 在构建时替换为真实构建时间 -->
+    <title>mydraft.cc [BUILD:__BUILD_STAMP__]</title>
+    <!-- FAVICONS -->
+  </head>
+  <body data-page-node-id="r0UQCkIV9MBHHUCqPWREfl">
+    <noscript data-page-node-id="rwpWaTtgj1cCRiE8fb2RjD">
+      You need to enable JavaScript to run this app.
+    </noscript>
+
+    <div id="root-layout" data-page-node-id="smxGoekv08cMCmxEvmH0hz"></div>
+
+    <!--
+      启动看门狗(只在 Electron 的 file:// 环境下生效, 网页版完全不受影响):
+      如果 12 秒后 #root-layout 还是空的, 说明页面加载了但应用没渲染出来
+      (JS 加载失败 / 路由没匹配上 / 渲染抛错)。这时把地址、协议和捕获到的脚本错误
+      直接写到页面上, 避免"白屏但一点线索都没有"。应用正常渲染时不会做任何事。
+    -->
+    <script>
+      (function () {
+        if (location.protocol !== 'file:') {
+          return;
+        }
+
+        var problems = [];
+
+        // 用捕获阶段监听, 这样脚本/样式等子资源加载失败也能被记下来。
+        window.addEventListener('error', function (event) {
+          var target = event && event.target;
+
+          if (target && target !== window && target.tagName) {
+            problems.push('资源加载失败: <' + target.tagName.toLowerCase() + '> ' + (target.src || target.href || ''));
+          } else {
+            problems.push(String((event && (event.message || event.type)) || 'unknown error'));
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function (event) {
+          problems.push('Promise 未处理: ' + String((event && (event.reason)) || 'unknown'));
+        });
+
+        window.setTimeout(function () {
+          var root = document.getElementById('root-layout');
+
+          if (!root || root.childElementCount > 0) {
+            return;
+          }
+
+          root.setAttribute('style', 'font:13px/1.8 monospace;padding:24px;color:#a8071a;white-space:pre-wrap;word-break:break-all');
+
+          root.textContent = [
+            'mydraft 启动失败: 页面已加载, 但应用没有渲染出来。',
+            '',
+            '当前地址: ' + location.href,
+            '协议: ' + location.protocol,
+            '已捕获的错误: ' + (problems.length > 0 ? problems.join(' | ') : '(无 —— 说明是路由没匹配上, 而不是脚本报错)'),
+            '',
+            '把这整段内容截图发出来即可定位。',
+          ].join('\n');
+        }, 12000);
+      })();
+    </script>
+
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

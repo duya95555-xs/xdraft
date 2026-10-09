@@ -1,0 +1,22 @@
+@use '@app/style/mixins' as *;
+@use '@app/style/vars' as *;
+
+.recent {
+    &-caption {
+        padding: 10px 10px 0 10px;
+        font-size: 12px;
+        font-weight: 600;
+        opacity: 0.65;
+    }
+
+    &-list {
+        flex-grow: 1;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        padding: 10px;
+    }
+
+    &-item {
+        margin-bottom: 15px;
+    }
+}

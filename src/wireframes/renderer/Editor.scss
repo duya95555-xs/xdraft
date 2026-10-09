@@ -1,0 +1,21 @@
+@use '@app/style/mixins' as *;
+@use '@app/style/vars' as *;
+
+.editor {
+    & {
+        position: relative;
+        height: 100%;
+    }
+
+    .pixi {
+        @include absolute(0, 0, 0, 0);
+
+        & > div {
+            height: 100%;
+        }
+    }
+
+    &-adorners {
+        pointer-events: none;
+    }
+}

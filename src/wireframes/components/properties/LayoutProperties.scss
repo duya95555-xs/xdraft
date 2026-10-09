@@ -1,0 +1,11 @@
+@use '@app/style/mixins' as *;
+@use '@app/style/vars' as *;
+
+.layout-properties {
+    button {
+        margin-right: 3px;
+        padding-left: 0;
+        padding-right: 0;
+        width: 32px;
+    }
+}

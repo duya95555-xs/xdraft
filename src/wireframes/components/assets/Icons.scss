@@ -1,0 +1,117 @@
+@use '@app/style/mixins' as *;
+@use '@app/style/vars' as *;
+
+.asset-icon {
+    & {
+        background: transparent;
+        border-bottom: 1px solid $color-border;
+        border-right: 1px solid $color-border;
+        // 整张卡片都是拖拽源(含标题),所以卡片内一律禁止文本选中,
+        // 否则在标题上按下并拖动会变成"框选文字"而不是拖拽。
+        // 自定义图片光标:系统 grab 光标在 Chromium 高 GPU 负载下会丢描边蒙版
+        // (变成实心白手),图片光标按位图渲染,没有这个问题。
+        cursor: url(/grab-hand.png) 14 1, grab;
+        // border-box:让 height:100%(=Grid 的行高)把边框也算进去。
+        //
+        // 全局样式里没有 box-sizing 重置(见 style/_common.scss),默认是 content-box,
+        // 那样 height:100% 只管内容区、下边框另占 1px,卡片实际高 97px 会溢出 96px 的行高,
+        // 表现为相邻两行的边线错位、卡片底部被下一行压住。
+        // 加上 border-box 后:内容区 = 96 - 1 = 95px = 预览区 65px + 标题行 30px,精确闭合。
+        box-sizing: border-box;
+        // 卡片内部按列排布:预览区占满剩余高度、标题固定一行。
+        // 这里显式声明 display:flex —— 形状页的 .asset-shape 漏了这一条,
+        // 导致它那些 flex-grow / align-items / justify-content 其实都没生效
+        // (真实渲染只靠固定 height 撑住)。图标页不复制那个疏漏。
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        text-align: center;
+        text-decoration: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    &:active {
+        cursor: url(/grab-hand.png) 14 1, grabbing;
+    }
+
+    &-title {
+        @include truncate;
+        // 标题固定一行:不被预览区挤压,也不随内容撑高。
+        flex: 0 0 auto;
+        padding-left: 5px;
+        padding-right: 5px;
+        line-height: 30px;
+    }
+
+    // 预览区。**高度必须是确定的单一值**。
+    //
+    // 改造前这里是三个互相打架的属性:line-height:70px + max-height:50px + min-height:50px,
+    // 实际生效的是 50px(line-height 被 max-height 截断),但 70px 的 line-height 仍会
+    // 撑开行盒,导致卡片内边距在部分字体下行高不一致。
+    //
+    // 现在与形状页对齐:用 flex 居中 + 固定 height。
+    // 65px 的由来(border-box 口径):卡片内容区 = ICON_ROW_HEIGHT(96) - 下边框(1) = 95px,
+    // 减去标题行 30px,预览区正好 65px ⇒ 两段相加精确填满,不溢出也不留空隙。
+    // 这样卡片之间的横向/纵向边线才能连续不断。
+    //
+    // ⚠️ 不要在这里动 line-height(glyph 的行高交给字体自己决定)。
+    // 两套图标集的 fontClass 不同 —— Font Awesome 是 'fa'、Material Design 是
+    // 'material-icons' —— 任何只针对单个 class 的行高覆盖都会漏掉另一套,
+    // 而给父级设 line-height:0 更会把另一套的字形直接压成 0 高。
+    // flex 的 align-items:center 已经完成垂直居中,无需行高参与。
+    &-preview {
+        align-items: center;
+        display: flex;
+        // 占满标题以外的剩余空间(卡片是纵向 flex)。
+        flex: 1 1 auto;
+        height: 65px;
+        justify-content: center;
+        min-height: 0;
+    }
+
+    // 两套图标集各自的实际渲染元素。字号统一到 28px,避免一个字体大一个字体小。
+    .fa,
+    .material-icons {
+        font-size: 28px;
+    }
+}
+
+.asset-icons {
+    &-search {
+        .ant-input-affix-wrapper {
+            border-left: 0 !important;
+            border-radius: 0 !important;
+            border-right: 0 !important;
+        }
+
+        .ant-select-selector {
+            border-left: 0 !important;
+            border-radius: 0 !important;
+            border-right: 0 !important;
+        }
+
+        .ant-select {
+            display: block;
+            margin: 0;
+            margin-top: 4px;
+        }
+    }
+
+    // wrapper 提供 flex 链的中间环节,让内层 Grid 拿到确定高度。
+    // min-height: 0 是必需的 —— 否则 flex 子项的最小高度是其内容高度,
+    // 内层 overflow 滚动条永远不会出现,虚拟滚动也就测不准可视区间。
+    // 与形状页的 .asset-shapes-list-wrapper 结构完全对应。
+    &-list-wrapper {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        min-height: 0;
+    }
+
+    &-list {
+        flex-grow: 1;
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+}

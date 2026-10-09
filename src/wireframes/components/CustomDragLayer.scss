@@ -1,0 +1,15 @@
+@use '@app/style/mixins' as *;
+@use '@app/style/vars' as *;
+
+.drag-layer {
+    @include fixed(0, 0, 0, 0);
+    pointer-events: none;
+
+    & {
+        z-index: 100000;
+    }
+
+    svg {
+        position: absolute;
+    }
+}
