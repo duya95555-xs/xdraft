@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- xdraft favicon: 紫蓝渐变圆角方块 + 白色 x, 与 logo 渐变 (#667eea -> #764ba2) 同源。 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" version="1.1">
+  <defs>
+    <linearGradient id="xdraft-brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#xdraft-brand)"/>
+  <text x="32" y="47"
+        font-family="Nunito, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif"
+        font-size="42" font-weight="800" text-anchor="middle"
+        fill="#ffffff">x</text>
+</svg>
