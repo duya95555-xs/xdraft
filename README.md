@@ -1,49 +1,53 @@
-# xdraft — UOS Desktop Edition
+# xdraft
 
-> **English**: xdraft is a desktop (Electron) port of [mydraft.cc](https://github.com/mydraft-cc/ui) — the open-source wireframing tool — targeted at UOS / Linux (arm64) and Windows, with offline-first improvements.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Electron](https://img.shields.io/badge/Electron-35-47848F.svg)](https://www.electronjs.org/)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](#packaging)
 
-xdraft 基于优秀的开源线框图工具（TypeScript + React + Redux），原项目地址：**https://github.com/mydraft-cc/ui** ，作者 Sebastian Stehle（mydraft.cc），MIT 许可证。
+**English** | [简体中文](./README.zh-CN.md)
 
-xdraft 是个人维护的**桌面增强版**：在原项目基础上完成 Electron 桌面封装、离线化改造与若干功能增强，面向 UOS（arm64）与 Windows 环境。
+xdraft is a desktop edition of [mydraft.cc](https://mydraft.cc) — the open-source wireframing tool by Sebastian Stehle ([mydraft-cc/ui](https://github.com/mydraft-cc/ui)) — packaged with Electron and enhanced for offline-first usage. It runs on **Windows, Linux (x64 & arm64, incl. UOS/Deepin), and macOS**.
 
-**致谢与尊重**：本项目的全部基础能力来自原项目 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)，没有他们的开源贡献就没有这个发行版。许可证见 [LICENSE](./LICENSE)（MIT，保留原版权声明）。
+> **Credits & respect**: all core capabilities come from the original open-source project [mydraft-cc/ui](https://github.com/mydraft-cc/ui) (MIT). This is an independent, unofficial distribution maintained by [@YOUR_NAME](https://github.com/YOUR_NAME); it is not affiliated with or endorsed by the original author. The mydraft name and brand belong to their respective owner.
 
----
+![xdraft editor](./docs/screenshot.png)
 
-## 相对上游的主要改动
+## Features
 
-### 平台与打包
-- **Electron 桌面封装**：主进程 / preload 通道、本地静态服务、窗口生命周期管理（含未保存确认的关窗防抖与 5 秒兜底）
-- **UOS（arm64）适配**：国产操作系统离线环境的打包与运行支持
+- **Desktop app** — Electron packaging for Windows (NSIS installer / portable), Linux (deb / AppImage), macOS (dmg, see below)
+- **Offline-first** — icon fonts (Font Awesome / Material Icons) are inlined as base64: no CDN requests, no white screen on offline machines, and exported PNGs keep their icons (font CSS is injected into the exported SVG)
+- **Flow connectors** — line style (solid / dashed / dotted), custom color, and per-side arrow heads (none / single / double)
+- **UOS-friendly** — optimized slim build (`slim-build.sh`) targeting Debian-based arm64 systems such as UOS
+- All wireframing capabilities of the original tool: shapes, icon panels, exported PNG/HTML, localization (zh-CN / en-US)
 
-### 离线化
-- **图标字体内联**：Material Icons / Font Awesome 从 CDN 改为 base64 内联（`src/fonts/`），彻底解决离线启动白屏、图标不显示的问题；导出 PNG 时字体同步写入 SVG `<defs>`，修复导出丢图标
-- 附带字体再生成脚本 `tools/fetch-icon-fonts.sh`
+## Development
 
-### 功能增强
-- **流程连线线型**：连线新增「实线 / 虚线 / 点线」样式，颜色与箭头（无 / 单侧 / 双箭头）支持自定义
-- 修复选中连线时颜色 / 线宽修改不生效的问题（appearance 修改目标集与变换目标集分离）
-- 颜色解析支持 `transparent`
-
-### 缺陷修复
-- 修复切换侧栏导致画布视口重置的跳位问题（`hasResetRef` 一次性初始化）
-- 修复关窗确认弹窗进行中快速双击标题栏 X 绕过确认直接关窗的竞态
-- 导出前等待图标字体加载增加 3 秒超时兜底，避免异常时导出挂死
-
-> 说明：本发行版为**无 AI 模块**的精简线（`1.0.2`），聚焦离线桌面场景。
-
-## 开发与构建
+Requires Node.js ≥ 18.
 
 ```bash
-npm install        # 安装依赖
-npm run start      # 浏览器开发模式 (vite)
-npm run build      # 生产构建 (tsc + vite build)
+npm install        # install dependencies
+npm run start      # browser-only dev mode (vite)
+npm run electron:dev   # desktop dev mode (vite + electron)
+npm run build      # production web build (tsc + vite)
 ```
 
-## 原项目
+> Offline environments: set `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` before `npm install` if the Electron binary download is slow or blocked.
 
-- 仓库：https://github.com/mydraft-cc/ui
-- 在线版：https://mydraft.cc
-- 作者：Sebastian Stehle（https://github.com/SebastianStehle）
+## Packaging
 
-感谢所有原项目贡献者。
+| Platform | Command | Output |
+|---|---|---|
+| Linux arm64 (UOS/Deepin) | `npm run electron:build:linux-arm64` or `bash slim-build.sh` | deb (xz-compressed) |
+| Linux x64 | `npm run electron:build:linux-x64` | deb |
+| Windows | `npm run electron:build:win` | NSIS installer / portable |
+| macOS | `npx electron-builder --mac` | dmg |
+
+Notes:
+
+- `slim-build.sh` regenerates the inline icon-font data first, builds without `node_modules`, and re-compresses the deb with `xz -9` — the recommended path for UOS.
+- macOS packaging has no dedicated npm script yet; run `npx electron-builder --mac` after `npm run build` with `ELECTRON=true`. A `mac` section (dmg target) may be added to `electron-builder-optimized.yml` on demand.
+- Build artifacts land in `release-slim/` (see `electron-builder-optimized.yml`).
+
+## License
+
+[MIT](./LICENSE) — copyright (c) mydraft.cc (Sebastian Stehle) and contributors, plus (c) 2026 YOUR_NAME (xdraft edition).
