@@ -6,7 +6,7 @@
 
 [English](./README.md) | **简体中文**
 
-xdraft 是开源线框图工具 [mydraft.cc](https://mydraft.cc)（作者 Sebastian Stehle，仓库 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)）的桌面发行版：Electron 封装 + 离线优先改造。可运行于 **Windows、Linux（x64 / arm64，含 UOS、Deepin 等国产系统）与 macOS**。
+xdraft 是基于开源线框图工具 [mydraft.cc](https://mydraft.cc)（作者 Sebastian Stehle，仓库 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)）二次开发的版本：Electron 桌面封装 + 离线优先改造，可运行于 **Windows、Linux（x64 / arm64，含 UOS、Deepin 等国产系统）与 macOS**。
 
 > **致谢与尊重**：本项目的全部基础能力来自原开源项目 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)（MIT 许可证）。这是由 [@YOUR_NAME](https://github.com/YOUR_NAME) 个人维护的**非官方**发行版，与原项目及其作者无关联、未获其背书；mydraft 名称与品牌归原权利人所有。
 

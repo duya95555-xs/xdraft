@@ -6,7 +6,7 @@
 
 **English** | [简体中文](./README.zh-CN.md)
 
-xdraft is a desktop edition of [mydraft.cc](https://mydraft.cc) — the open-source wireframing tool by Sebastian Stehle ([mydraft-cc/ui](https://github.com/mydraft-cc/ui)) — packaged with Electron and enhanced for offline-first usage. It runs on **Windows, Linux (x64 & arm64, incl. UOS/Deepin), and macOS**.
+xdraft is built on top of [mydraft.cc](https://mydraft.cc), the open-source wireframing tool by Sebastian Stehle ([mydraft-cc/ui](https://github.com/mydraft-cc/ui)), as a second-development edition: Electron desktop packaging with offline-first enhancements. It runs on **Windows, Linux (x64 & arm64, incl. UOS/Deepin), and macOS**.
 
 > **Credits & respect**: all core capabilities come from the original open-source project [mydraft-cc/ui](https://github.com/mydraft-cc/ui) (MIT). This is an independent, unofficial distribution maintained by [@YOUR_NAME](https://github.com/YOUR_NAME); it is not affiliated with or endorsed by the original author. The mydraft name and brand belong to their respective owner.
 
