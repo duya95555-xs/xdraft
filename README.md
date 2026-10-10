@@ -8,7 +8,7 @@
 
 xdraft is built on top of [mydraft.cc](https://mydraft.cc), the open-source wireframing tool by Sebastian Stehle ([mydraft-cc/ui](https://github.com/mydraft-cc/ui)), as a second-development edition: Electron desktop packaging with offline-first enhancements. It runs on **Windows, Linux (x64 & arm64, incl. UOS/Deepin), and macOS**.
 
-> **Credits & respect**: all core capabilities come from the original open-source project [mydraft-cc/ui](https://github.com/mydraft-cc/ui) (MIT). This is an independent, unofficial distribution maintained by [@YOUR_NAME](https://github.com/YOUR_NAME); it is not affiliated with or endorsed by the original author. The mydraft name and brand belong to their respective owner.
+> **Credits & respect**: all core capabilities come from the original open-source project [mydraft-cc/ui](https://github.com/mydraft-cc/ui) (MIT). This is an independent, unofficial distribution maintained by [@duya95555-xs](https://github.com/duya95555-xs); it is not affiliated with or endorsed by the original author. The mydraft name and brand belong to their respective owner.
 
 ![xdraft editor](./docs/screenshot.png)
 
@@ -50,4 +50,4 @@ Notes:
 
 ## License
 
-[MIT](./LICENSE) — copyright (c) mydraft.cc (Sebastian Stehle) and contributors, plus (c) 2026 YOUR_NAME (xdraft edition).
+[MIT](./LICENSE) — copyright (c) mydraft.cc (Sebastian Stehle) and contributors, plus (c) 2026 duya95555-xs (xdraft edition).

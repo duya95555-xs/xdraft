@@ -8,7 +8,7 @@
 
 xdraft 是基于开源线框图工具 [mydraft.cc](https://mydraft.cc)（作者 Sebastian Stehle，仓库 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)）二次开发的版本：Electron 桌面封装 + 离线优先改造，可运行于 **Windows、Linux（x64 / arm64，含 UOS、Deepin 等国产系统）与 macOS**。
 
-> **致谢与尊重**：本项目的全部基础能力来自原开源项目 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)（MIT 许可证）。这是由 [@YOUR_NAME](https://github.com/YOUR_NAME) 个人维护的**非官方**发行版，与原项目及其作者无关联、未获其背书；mydraft 名称与品牌归原权利人所有。
+> **致谢与尊重**：本项目的全部基础能力来自原开源项目 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)（MIT 许可证）。这是由 [@duya95555-xs](https://github.com/duya95555-xs) 个人维护的**非官方**发行版，与原项目及其作者无关联、未获其背书；mydraft 名称与品牌归原权利人所有。
 
 ![xdraft 编辑器](./docs/screenshot.png)
 
@@ -50,4 +50,4 @@ npm run build          # 生产构建 (tsc + vite)
 
 ## 许可证
 
-[MIT](./LICENSE) —— 版权 (c) mydraft.cc (Sebastian Stehle) and contributors，以及 (c) 2026 YOUR_NAME（xdraft edition）。
+[MIT](./LICENSE) —— 版权 (c) mydraft.cc (Sebastian Stehle) and contributors，以及 (c) 2026 duya95555-xs（xdraft edition）。
