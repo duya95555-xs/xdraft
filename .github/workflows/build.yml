@@ -1,0 +1,83 @@
+# xdraft 多平台构建工作流
+# 触发条件：推送 v* 标签（如 git tag v1.0.3 && git push origin v1.0.3），或在 Actions 页手动触发
+# 产物：自动附加到对应标签的 GitHub Release
+#
+# 平台矩阵：
+#   - ubuntu-24.04-arm : Linux arm64 deb（UOS/deepin，原生 arm runner，公开仓库免费）
+#   - windows-latest   : Windows x64 NSIS 安装版 + 便携版
+#   - macos-latest     : macOS dmg（未签名，用户首次打开需右键->打开 或 xattr -cr）
+#
+# 说明：Linux x64 包暂不在此矩阵中（打包配置与运行时依赖尚待验证），需要时再启用。
+
+name: build-release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04-arm
+            platform: linux
+            args: --linux --arm64 -c electron-builder-optimized.yml
+            artifact_glob: release-slim/*.deb
+          - os: windows-latest
+            platform: win
+            args: --win
+            artifact_glob: |
+              release/*.exe
+              release/*.blockmap
+          - os: macos-latest
+            platform: mac
+            args: --mac
+            artifact_glob: release/*.dmg
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend (ELECTRON=true -> dist-electron)
+        env:
+          ELECTRON: true
+        run: npm run build
+
+      - name: Package (${{ matrix.platform }})
+        run: npx electron-builder ${{ matrix.args }}
+        env:
+          # 无签名证书：跳过 mac 签名，产出未签名 dmg
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Collect artifacts
+        shell: bash
+        run: mkdir -p dist-artifacts && cp ${{ matrix.artifact_glob }} dist-artifacts/ 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xdraft-${{ matrix.platform }}
+          path: dist-artifacts/*
+          if-no-files-found: error
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-artifacts/*
+          draft: false
+          prerelease: false
