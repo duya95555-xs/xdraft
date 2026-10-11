@@ -20,6 +20,18 @@ xdraft is built on top of [mydraft.cc](https://mydraft.cc), the open-source wire
 - **UOS-friendly** — optimized slim build (`slim-build.sh`) targeting Debian-based arm64 systems such as UOS
 - All wireframing capabilities of the original tool: shapes, icon panels, exported PNG/HTML, localization (zh-CN / en-US)
 
+## Download
+
+Prebuilt installers are available on the [Releases](https://github.com/duya95555-xs/xdraft/releases) page:
+
+| File | Platform | Notes |
+|---|---|---|
+| `xdraft-Setup-x.x.x-win-x64.exe` | Windows x64 | NSIS installer (choose directory, desktop shortcut) |
+| `xdraft-x.x.x-portable-win-x64.exe` | Windows x64 | Portable, single file, no installation |
+| `xdraft_x.x.x_arm64.deb` | Linux arm64 (UOS / deepin / Debian) | `sudo dpkg -i xdraft_x.x.x_arm64.deb` |
+
+Linux x64 / macOS: build locally with the commands in [Packaging](#packaging).
+
 ## Development
 
 Requires Node.js ≥ 18.

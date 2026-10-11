@@ -20,6 +20,18 @@ xdraft 是基于开源线框图工具 [mydraft.cc](https://mydraft.cc)（作者 
 - **UOS 友好** —— 提供 `slim-build.sh` 精简打包脚本，针对 UOS 等 Debian 系 arm64 系统优化体积
 - 保留原工具全部线框能力：形状库、图标面板、导出 PNG / HTML、中英文界面
 
+## 下载
+
+预编译安装包见 [Releases](https://github.com/duya95555-xs/xdraft/releases) 页面：
+
+| 文件 | 平台 | 说明 |
+|---|---|---|
+| `xdraft-Setup-x.x.x-win-x64.exe` | Windows x64 | NSIS 安装版（可选安装目录、自动创建快捷方式） |
+| `xdraft-x.x.x-portable-win-x64.exe` | Windows x64 | 便携版，单文件免安装 |
+| `xdraft_x.x.x_arm64.deb` | Linux arm64（UOS / deepin / Debian 系） | `sudo dpkg -i xdraft_x.x.x_arm64.deb` |
+
+Linux x64 / macOS 请按[打包](#打包)章节的命令自行构建。
+
 ## 开发
 
 需要 Node.js ≥ 18。
