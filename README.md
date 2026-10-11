@@ -60,6 +60,10 @@ Notes:
 - macOS packaging has no dedicated npm script yet; run `npx electron-builder --mac` after `npm run build` with `ELECTRON=true`. A `mac` section (dmg target) may be added to `electron-builder-optimized.yml` on demand.
 - Build artifacts land in `release-slim/` (see `electron-builder-optimized.yml`).
 
+## Note
+
+This is a personal, best-effort project maintained in spare time — bugs are to be expected. If you run into one, feel free to [open an issue](https://github.com/duya95555-xs/xdraft/issues), or simply fork and fix it yourself. PRs are always welcome.
+
 ## License
 
 [MIT](./LICENSE) — copyright (c) mydraft.cc (Sebastian Stehle) and contributors, plus (c) 2026 duya95555-xs (xdraft edition).

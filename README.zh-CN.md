@@ -60,6 +60,10 @@ npm run build          # 生产构建 (tsc + vite)
 - macOS 暂无专用 npm script：先 `ELECTRON=true npm run build`，再 `npx electron-builder --mac`。需要的话可在 `electron-builder-optimized.yml` 补 `mac`（dmg target）配置。
 - 构建产物输出到 `release-slim/`（见 `electron-builder-optimized.yml`）。
 
+## 说明
+
+本项目是个人利用业余时间维护的作品，能力有限，难免有 bug。遇到问题欢迎[提 issue](https://github.com/duya95555-xs/xdraft/issues)，也欢迎直接 fork 一份自己动手修，PR 随时欢迎。
+
 ## 许可证
 
 [MIT](./LICENSE) —— 版权 (c) mydraft.cc (Sebastian Stehle) and contributors，以及 (c) 2026 duya95555-xs（xdraft edition）。
