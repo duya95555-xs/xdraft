@@ -120,10 +120,6 @@
     "appId": "cc.xdraft.app",
     "productName": "xdraft",
     "copyright": "Copyright (c) Sebastian Stehle. All rights reserved.",
-    "electronLanguages": [
-      "zh-CN",
-      "en-US"
-    ],
     "directories": {
       "output": "release"
     },
