@@ -22,15 +22,15 @@ xdraft is built on top of [mydraft.cc](https://mydraft.cc), the open-source wire
 
 ## Download
 
-Prebuilt installers are available on the [Releases](https://github.com/duya95555-xs/xdraft/releases) page:
+Direct downloads (v1.0.2):
 
 | File | Platform | Notes |
 |---|---|---|
-| `xdraft-Setup-x.x.x-win-x64.exe` | Windows x64 | NSIS installer (choose directory, desktop shortcut) |
-| `xdraft-x.x.x-portable-win-x64.exe` | Windows x64 | Portable, single file, no installation |
-| `xdraft_x.x.x_arm64.deb` | Linux arm64 (UOS / deepin / Debian) | `sudo dpkg -i xdraft_x.x.x_arm64.deb` |
+| [xdraft-Setup-1.0.1-win-x64.exe](https://github.com/duya95555-xs/xdraft/releases/download/v1.0.2/xdraft-Setup-1.0.1-win-x64.exe) | Windows x64 | NSIS installer (choose directory, desktop shortcut) |
+| [xdraft-1.0.1-portable-win-x64.exe](https://github.com/duya95555-xs/xdraft/releases/download/v1.0.2/xdraft-1.0.1-portable-win-x64.exe) | Windows x64 | Portable, single file, no installation |
+| [xdraft_1.0.2_arm64.deb](https://github.com/duya95555-xs/xdraft/releases/download/v1.0.2/xdraft_1.0.2_arm64.deb) | Linux arm64 (UOS / deepin / Debian) | `sudo dpkg -i xdraft_1.0.2_arm64.deb` |
 
-Linux x64 / macOS: build locally with the commands in [Packaging](#packaging).
+Newer versions: see the [Releases](https://github.com/duya95555-xs/xdraft/releases) page. Linux x64 / macOS: build locally with the commands in [Packaging](#packaging).
 
 ## Development
 
