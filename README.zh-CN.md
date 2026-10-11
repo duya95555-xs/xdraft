@@ -62,7 +62,7 @@ npm run build          # 生产构建 (tsc + vite)
 
 ## 说明
 
-本项目是个人利用业余时间维护的作品，能力有限，难免有 bug。遇到问题欢迎[提 issue](https://github.com/duya95555-xs/xdraft/issues)，也欢迎直接 fork 一份自己动手修，PR 随时欢迎。
+本项目是个人利用业余时间维护的作品，作者水平有限，难免有 bug 与考虑不周之处，还请多多担待。遇到问题欢迎[提 issue](https://github.com/duya95555-xs/xdraft/issues) 反馈，也欢迎直接 fork 一份自己动手修 —— PR 随时欢迎。
 
 ## 许可证
 

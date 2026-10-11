@@ -62,7 +62,7 @@ Notes:
 
 ## Note
 
-This is a personal, best-effort project maintained in spare time — bugs are to be expected. If you run into one, feel free to [open an issue](https://github.com/duya95555-xs/xdraft/issues), or simply fork and fix it yourself. PRs are always welcome.
+This is a personal, best-effort project maintained in spare time. The author's skills are limited, so bugs and rough edges are to be expected — your understanding is appreciated. If you run into one, feel free to [open an issue](https://github.com/duya95555-xs/xdraft/issues), or simply fork and fix it yourself. PRs are always welcome.
 
 ## License
 
