@@ -28,17 +28,17 @@ jobs:
         include:
           - os: ubuntu-24.04-arm
             platform: linux
-            args: --linux --arm64 -c electron-builder-optimized.yml
+            args: --linux --arm64 -c electron-builder-optimized.yml --publish never
             artifact_glob: release-slim/*.deb
           - os: windows-latest
             platform: win
-            args: --win
+            args: --win --publish never
             artifact_glob: |
               release/*.exe
               release/*.blockmap
           - os: macos-latest
             platform: mac
-            args: --mac
+            args: --mac --publish never
             artifact_glob: release/*.dmg
 
     runs-on: ${{ matrix.os }}
