@@ -10,12 +10,15 @@ import { applyShadow, SHADOW_DEFAULT_APPEARANCE } from './_shadow';
 import { CommonTheme } from './_theme';
 
 const ACCENT = 'ACCENT_COLOR';
-const BORDER_RADIUS = 'FLOW_BORDER_RADIUS';
+
+// 圆角半径的外观键。导出给 RadiusAdorner(画布上的圆角拖拽手柄)与
+// CustomProperties(本地化标签)共用, 避免魔法字符串分叉。
+export const FLOW_BORDER_RADIUS = 'FLOW_BORDER_RADIUS';
 
 const DEFAULT_RADIUS = 16;
 
 const DEFAULT_APPEARANCE = {
-    [BORDER_RADIUS]: DEFAULT_RADIUS,
+    [FLOW_BORDER_RADIUS]: DEFAULT_RADIUS,
     [DefaultAppearance.BACKGROUND_COLOR]: 0xFFFFFF,
     [DefaultAppearance.FONT_SIZE]: CommonTheme.CONTROL_FONT_SIZE,
     [DefaultAppearance.FOREGROUND_COLOR]: 0,
@@ -47,7 +50,7 @@ export class RoundedRectangle implements ShapePlugin {
 
     public configurables(factory: ConfigurableFactory) {
         return [
-            factory.slider(BORDER_RADIUS, 'Border Radius', 0, 40),
+            factory.slider(FLOW_BORDER_RADIUS, 'Border Radius', 0, 100),
             factory.color(ACCENT, 'Accent Color'),
         ];
     }
@@ -58,7 +61,7 @@ export class RoundedRectangle implements ShapePlugin {
     }
 
     private createShape(ctx: RenderContext) {
-        const radius = ctx.shape.getAppearance(BORDER_RADIUS) ?? DEFAULT_RADIUS;
+        const radius = ctx.shape.getAppearance(FLOW_BORDER_RADIUS) ?? DEFAULT_RADIUS;
         const accent = ctx.shape.getAppearance(ACCENT);
 
         ctx.renderer2.rectangle(ctx.shape, radius, ctx.rect, p => {

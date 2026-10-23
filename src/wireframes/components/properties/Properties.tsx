@@ -16,6 +16,7 @@ import { DiagramProperties } from './DiagramProperties';
 import { Experimental } from './Experimental';
 import { LayoutProperties } from './LayoutProperties';
 import { MoreProperties } from './MoreProperties';
+import { ShapeCode } from './ShapeCode';
 import { TransformProperties } from './TransformProperties';
 import { VisualProperties } from './VisualProperties';
 
@@ -46,6 +47,11 @@ const layoutItems: CollapseProps['items'] = [
         label: texts.common.custom,
         children: <CustomProperties />,
     },
+    {
+        key: 'code',
+        label: texts.common.shapeCode,
+        children: <ShapeCode />,
+    },
 ];
 
 const diagramItems: CollapseProps['items'] = [
@@ -73,7 +79,7 @@ export const Properties = () => {
     return (
         <>
             <Collapse className={(classNames({ hidden: !hasSelection }))} items={layoutItems}
-                bordered={false} defaultActiveKey={['layout', 'visual', 'more', 'custom']} />
+                bordered={false} defaultActiveKey={['layout', 'visual', 'more', 'custom', 'code']} />
 
             <Collapse className={(classNames({ hidden: hasSelection || !hasDiagram }))} items={diagramItems}
                 bordered={false} defaultActiveKey={['diagram', 'colors']} />

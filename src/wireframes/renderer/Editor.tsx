@@ -22,6 +22,7 @@ import { ConnectorAnchorAdorner } from './ConnectorAnchorAdorner';
 import { HitAdorner } from './HitAdorner';
 import { NavigateAdorner } from './NavigateAdorner';
 import { QuickbarAdorner } from './QuickbarAdorner';
+import { RadiusAdorner } from './RadiusAdorner';
 import { SelectionAdorner } from './SelectionAdorner';
 import { SplitAdorner } from './SplitAdorner';
 import { TextAdorner } from './TextAdorner';
@@ -310,6 +311,18 @@ export const Editor = React.memo(React.forwardRef<EditorHandle, EditorProps>((pr
                             layer={layers.adornerCropLayer}
                             onReconnectConnector={props.onReconnectConnector}
                             onSetConnectorWaypoints={props.onSetConnectorWaypoints}
+                            selectedDiagram={diagram}
+                            selectionSet={selectionSet}
+                            zoom={viewBox.zoom}
+                        />
+                    }
+
+                    {onChangeItemsAppearance &&
+                        <RadiusAdorner
+                            disabled={props.interactionDisabled}
+                            engine={layers.engine}
+                            layer={layers.adornerCropLayer}
+                            onChangeItemsAppearance={onChangeItemsAppearance}
                             selectedDiagram={diagram}
                             selectionSet={selectionSet}
                             zoom={viewBox.zoom}

@@ -36,6 +36,8 @@ const LABEL_KEYS: { [name: string]: PropertyTextKey } = {
     CONNECTOR_TYPE: 'connectorType',
     CONNECTOR_BEND_POSITION: 'connectorBendPosition',
     CONNECTOR_CURVE_AMPLITUDE: 'connectorCurveAmount',
+    // 圆角矩形的圆角(与 shapes/neutral/rounded-rectangle.ts 的外观键对齐)。
+    FLOW_BORDER_RADIUS: 'borderRadius',
     HEADER_BACKGROUND_COLOR: 'headerBackground',
     HEADER_FOREGROUND_COLOR: 'headerText',
     HEADER_HIDDEN: 'hideHeader',
