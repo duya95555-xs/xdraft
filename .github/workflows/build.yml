@@ -64,20 +64,16 @@ jobs:
           # 无签名证书：跳过 mac 签名，产出未签名 dmg
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Collect artifacts
-        shell: bash
-        run: mkdir -p dist-artifacts && cp ${{ matrix.artifact_glob }} dist-artifacts/ 2>/dev/null || true
-
       - uses: actions/upload-artifact@v4
         with:
           name: xdraft-${{ matrix.platform }}
-          path: dist-artifacts/*
+          path: ${{ matrix.artifact_glob }}
           if-no-files-found: error
 
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist-artifacts/*
+          files: ${{ matrix.artifact_glob }}
           draft: false
           prerelease: false
