@@ -5,7 +5,7 @@
  * Copyright (c) Sebastian Stehle. All rights reserved.
 */
 
-import { getDesktopBridge, hasLocalDiagrams, LocalDiagramInfo, logError, logInfo } from '@app/core';
+import { getDesktopBridge, hasLocalDiagrams, LocalDiagramInfo, logError, logInfo, logWarn } from '@app/core';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -158,7 +158,9 @@ export async function saveDiagramAsToLocal(body: any, suggestedName: string) {
     const bridge = localBridge();
 
     if (!bridge) {
-        return null;
+        // 浏览器: 优先用 File System Access API 让用户选目录与文件名(Chromium 支持);
+        // 不可用时返回 null, 调用方回落到 file-saver 的直接下载。
+        return await saveBlobWithPicker(suggestedName, new Blob([JSON.stringify(body, undefined, 4)], { type: 'application/json' }), `${suggestedName}.json`);
     }
 
     const result = await bridge.saveAs(body, suggestedName);
@@ -170,6 +172,54 @@ export async function saveDiagramAsToLocal(body: any, suggestedName: string) {
     logInfo('api', `SAVE AS "${result.file}" (${result.bytes} bytes).`);
 
     return { canceled: false, file: result.file || '' };
+}
+
+// 浏览器的 File System Access API 保存框: 用户可以选目录和文件名。
+// 成功返回 { canceled: false }, 用户取消返回 { canceled: true }, API 不可用返回 null。
+async function saveBlobWithPicker(suggestedName: string, blob: Blob, fullName: string) {
+    const picker = (window as any).showSaveFilePicker;
+
+    if (typeof picker !== 'function') {
+        return null;
+    }
+
+    try {
+        const handle = await picker({ suggestedName: fullName });
+
+        const writable = await handle.createWritable();
+
+        await writable.write(blob);
+        await writable.close();
+
+        logInfo('api', `SAVE VIA PICKER "${handle.name}".`);
+
+        return { canceled: false, file: handle.name || suggestedName };
+    } catch (ex: any) {
+        // 用户在保存框里点了取消, 不算错误。
+        if (ex?.name === 'AbortError') {
+            return { canceled: true, file: '' };
+        }
+
+        logWarn('api', `Save picker failed, fall back to download.`, ex?.message ?? ex);
+
+        return null;
+    }
+}
+
+// 导出二进制(png/html)落盘:
+//   1. Electron  -> 系统"另存为"对话框(默认上次目录, 由主进程记忆);
+//   2. 浏览器    -> File System Access API 保存框;
+//   3. 都不可用  -> 返回 null, 调用方回落到 file-saver 直接下载。
+export async function saveBlobAsLocal(suggestedName: string, blob: Blob, filterName: string, extensions: string[]) {
+    const bridge = getDesktopBridge();
+
+    if (typeof bridge?.saveBlob === 'function') {
+        const data = new Uint8Array(await blob.arrayBuffer());
+
+        return await bridge.saveBlob(suggestedName, data, filterName, extensions);
+    }
+
+    return await saveBlobWithPicker(suggestedName, blob, suggestedName);
 }
 
 export async function postDiagram(body: any)  {

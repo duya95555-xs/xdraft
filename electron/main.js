@@ -57,6 +57,44 @@ async function writeJsonAtomic(filePath, body) {
     return Buffer.byteLength(text);
 }
 
+// ── 用户偏好(上次保存目录等) ────────────────────────────────────────────────
+// 记住用户上次"另存为 / 导出"选择的目录, 下次对话框直接落在那里。
+// 存在 userData/settings.json, 与本机文档目录(userData/diagrams)分开, 互不影响。
+
+function getSettingsFile() {
+    return path.join(app.getPath('userData'), 'settings.json');
+}
+
+function readSettings() {
+    try {
+        return JSON.parse(fs.readFileSync(getSettingsFile(), 'utf8'));
+    } catch {
+        return {};
+    }
+}
+
+function writeSettings(settings) {
+    try {
+        fs.writeFileSync(getSettingsFile(), JSON.stringify(settings, undefined, 4), 'utf8');
+    } catch (ex) {
+        // 偏好写不进去只影响"记忆目录", 不该让保存本身失败。
+        console.warn('[xdraft] 写入 settings.json 失败:', ex);
+    }
+}
+
+function getLastFileDir() {
+    const dir = readSettings().lastFileDir;
+
+    return typeof dir === 'string' && dir.length > 0 ? dir : null;
+}
+
+function setLastFileDir(filePath) {
+    // filePath 是完整文件路径, 取所在目录。
+    if (filePath) {
+        writeSettings({ ...readSettings(), lastFileDir: path.dirname(filePath) });
+    }
+}
+
 function registerIpcHandlers() {
     ipcMain.handle('xdraft:diagram:list', async () => {
         try {
@@ -112,9 +150,12 @@ function registerIpcHandlers() {
     });
 
     ipcMain.handle('xdraft:diagram:saveAs', async (_event, body, suggestedName) => {
+        const lastDir = getLastFileDir();
+
         const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
             title: '另存为',
-            defaultPath: path.join(app.getPath('documents'), `${sanitizeName(suggestedName)}.json`),
+            // 默认落在上次选择的目录; 第一次用系统的"文档"目录。
+            defaultPath: path.join(lastDir || app.getPath('documents'), `${sanitizeName(suggestedName)}.json`),
             filters: [{ name: 'xdraft 文档', extensions: ['json'] }],
         });
 
@@ -124,7 +165,37 @@ function registerIpcHandlers() {
 
         const bytes = await writeJsonAtomic(filePath, body);
 
+        setLastFileDir(filePath);
+
         return { canceled: false, file: filePath, bytes };
+    });
+
+    // 导出(png/html 等)走系统"另存为"对话框: 默认文件名由渲染进程给(文档名+流水号),
+    // 默认目录同样是"上次选择的目录"。数据以 Uint8Array 传过来, 结构化克隆后是 Buffer。
+    ipcMain.handle('xdraft:app:saveBlob', async (_event, suggestedName, data, filterName, extensions) => {
+        if (!(data instanceof Uint8Array) || data.length === 0) {
+            return { canceled: true };
+        }
+
+        const lastDir = getLastFileDir();
+
+        const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+            title: '导出',
+            defaultPath: path.join(lastDir || app.getPath('downloads'), String(suggestedName ?? 'export')),
+            filters: [{ name: String(filterName ?? '文件'), extensions: Array.isArray(extensions) && extensions.length > 0 ? extensions.map(String) : ['*'] }],
+        });
+
+        if (canceled || !filePath) {
+            return { canceled: true };
+        }
+
+        const buffer = Buffer.from(data);
+
+        await fsp.writeFile(filePath, buffer);
+
+        setLastFileDir(filePath);
+
+        return { canceled: false, file: filePath, bytes: buffer.byteLength };
     });
 
     // 渲染进程询问完毕: allow=true 真关, false 取消。

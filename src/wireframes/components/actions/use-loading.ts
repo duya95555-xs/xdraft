@@ -10,11 +10,49 @@ import { Rect2, useEventCallback, useOpenFile } from '@app/core';
 import { useAppDispatch } from '@app/store';
 import { texts } from '@app/texts';
 import { getDiagrams, getDiagram, loadDiagramFromFile, newDiagram, renameDocument, saveDiagramToFile, saveDiagramToServer, saveDiagramToServerFile, showToast, useStore } from '@app/wireframes/model';
+import { saveBlobAsLocal } from '@app/wireframes/model/actions/api';
 import { logError, logInfo } from '@app/core';
 import { renderDiagramToHtml } from '@app/wireframes/renderer/export-html';
 import { downloadBlob, getDiagramContentBounds, renderDiagramToPng } from '@app/wireframes/renderer/export-image';
 import { UIAction } from './shared';
 import { getSaveTarget, isCloudTargetAvailable, SaveTarget, setSaveTarget } from './save-target';
+
+// ── 导出文件名: 文档名 + 流水号 ─────────────────────────────────────────────
+// 例: 文档"登录流程" -> 登录流程-01.png、登录流程-02.png ...
+// 流水号按"文档名 + 扩展名"记在 localStorage, 导出成功后才递增(取消不算)。
+
+function exportBaseName(documentName: string | undefined, fallback: string) {
+    // 与保存文件名同一套清洗规则, 保证"保存的文件名"和"导出的文件名"一致。
+    const name = (documentName || '').trim().replace(/[\\/:*?"<>|]/g, '-');
+
+    return name.length > 0 ? name : fallback;
+}
+
+function exportSequenceKey(base: string, ext: string) {
+    return `xdraft.exportSeq.${base}.${ext}`;
+}
+
+function nextExportSequence(base: string, ext: string) {
+    try {
+        const current = Number(localStorage.getItem(exportSequenceKey(base, ext)) ?? '0');
+
+        return Number.isFinite(current) && current > 0 ? current + 1 : 1;
+    } catch {
+        return 1;
+    }
+}
+
+function commitExportSequence(base: string, ext: string, sequence: number) {
+    try {
+        localStorage.setItem(exportSequenceKey(base, ext), String(sequence));
+    } catch {
+        // 流水号存不进去只影响下次的起始值, 不该让导出失败。
+    }
+}
+
+function formatExportName(base: string, ext: string, sequence: number) {
+    return `${base}-${String(sequence).padStart(2, '0')}.${ext}`;
+}
 
 export function useLoading() {
     const dispatch = useAppDispatch();
@@ -22,6 +60,7 @@ export function useLoading() {
     const diagram = useStore(getDiagram);
     const size = useStore(x => x.editor.present.size);
     const color = useStore(x => x.editor.present.color);
+    const documentName = useStore(x => x.editor.present.documentName);
     const [exporting, setExporting] = React.useState(false);
     const [saveTarget, setSaveTargetState] = React.useState<SaveTarget>(() => getSaveTarget());
 
@@ -133,7 +172,23 @@ export function useLoading() {
             const { blob, externalImages } =
                 await renderDiagramToPng({ diagram, diagrams, bounds, background: color.toString() });
 
-            downloadBlob(blob, `${diagram.title || 'diagram'}.png`);
+            // 文件名跟随已保存的文档名 + 流水号(登录流程-01.png)。
+            const base = exportBaseName(documentName, 'diagram');
+            const sequence = nextExportSequence(base, 'png');
+            const fileName = formatExportName(base, 'png', sequence);
+
+            // Electron / 支持的浏览器: 弹"另存为"对话框(默认上次目录); 否则直接下载。
+            const saved = await saveBlobAsLocal(fileName, blob, 'PNG 图片', ['png']);
+
+            if (saved) {
+                if (saved.canceled) {
+                    return;
+                }
+            } else {
+                downloadBlob(blob, fileName);
+            }
+
+            commitExportSequence(base, 'png', sequence);
 
             if (externalImages > 0) {
                 dispatch(showToast(texts.common.exportExternalImages, 'warning'));
@@ -167,7 +222,24 @@ export function useLoading() {
             const { html, externalImages } =
                 await renderDiagramToHtml({ diagram, diagrams, bounds, background: color.toString() }, diagram.title || 'diagram');
 
-            downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), `${diagram.title || 'diagram'}.html`);
+            // 与 PNG 导出同一套规则: 文档名 + 流水号。
+            const base = exportBaseName(documentName, 'diagram');
+            const sequence = nextExportSequence(base, 'html');
+            const fileName = formatExportName(base, 'html', sequence);
+
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+
+            const saved = await saveBlobAsLocal(fileName, blob, 'HTML 文件', ['html']);
+
+            if (saved) {
+                if (saved.canceled) {
+                    return;
+                }
+            } else {
+                downloadBlob(blob, fileName);
+            }
+
+            commitExportSequence(base, 'html', sequence);
 
             if (externalImages > 0) {
                 dispatch(showToast(texts.common.exportExternalImages, 'warning'));

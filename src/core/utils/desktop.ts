@@ -37,6 +37,9 @@ export interface DesktopBridge {
 
     diagrams?: LocalDiagramsBridge;
 
+    // 导出二进制(png/html): 弹系统"另存为"对话框, 记住上次目录。
+    saveBlob?(suggestedName: string, data: Uint8Array, filterName?: string, extensions?: string[]): Promise<{ canceled: boolean; file?: string; bytes?: number }>;
+
     // 关窗保护: 窗口即将关闭时回调, 由渲染进程决定放行还是取消。
     onBeforeClose?(handler: () => void): () => void;
 
@@ -55,4 +58,9 @@ export function hasLocalDiagrams(): boolean {
 // 打包版。云端入口据此置灰(保留但不隐藏), 本机落盘是默认目标。
 export function isPackagedApp(): boolean {
     return getDesktopBridge()?.isPackaged === true;
+}
+
+// 能否通过系统"另存为"对话框直接落盘二进制(Electron)。浏览器里为 false, 回落到下载。
+export function canSaveBlobViaDialog(): boolean {
+    return typeof getDesktopBridge()?.saveBlob === 'function';
 }
