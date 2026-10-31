@@ -1,8 +1,18 @@
 # 依赖与构建产物
-node_modules/
+node_modules
 dist/
 build/
 .vite/
+dist-electron/
+release/
+release-slim/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 模板库数据（体积大，随部署包分发不入库）
+templates/
 
 # 日志与临时文件
 *.log

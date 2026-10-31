@@ -24,6 +24,14 @@ let mainWindow = null;
 // file:///api/diagrams/... 直接抛 Failed to fetch。改由主进程落盘, 真正离线可用。
 
 function getDiagramsDir() {
+    // 用户在"设置保存目录"里指定过的目录优先; 没指定(或目录失效)时用默认 userData/diagrams。
+    // 指定一次就一直用它, 直到用户下次更改 —— 这正是"默认目录直到下次更改"的语义。
+    const custom = readSettings().saveDir;
+
+    if (typeof custom === 'string' && custom.length > 0) {
+        return custom;
+    }
+
     return path.join(app.getPath('userData'), 'diagrams');
 }
 
@@ -110,9 +118,15 @@ function registerIpcHandlers() {
                 try {
                     const stat = await fsp.stat(path.join(dir, entry));
 
-                    if (stat.isFile()) {
-                        result.push({ name: entry.slice(0, -5), savedAt: stat.mtimeMs, bytes: stat.size });
-                    }
+                if (stat.isFile()) {
+                    result.push({
+                        name: entry.slice(0, -5),
+                        savedAt: stat.mtimeMs,
+                        bytes: stat.size,
+                        // 完整路径: "最近文档"面板的导出清单功能要用它。
+                        path: path.join(dir, entry),
+                    });
+                }
                 } catch {
                     // 单个文件读不到就跳过, 不要让整次列表失败。
                 }
@@ -196,6 +210,52 @@ function registerIpcHandlers() {
         setLastFileDir(filePath);
 
         return { canceled: false, file: filePath, bytes: buffer.byteLength };
+    });
+
+    // ── 保存目录设置 ────────────────────────────────────────────────────────
+    // 返回当前生效的文档保存目录(指定过的或默认的), 同时确保目录存在。
+    ipcMain.handle('xdraft:app:getSaveDir', async () => {
+        const dir = getDiagramsDir();
+
+        try {
+            await fsp.mkdir(dir, { recursive: true });
+        } catch (ex) {
+            console.warn('[xdraft] 保存目录不可用:', ex);
+        }
+
+        return { dir, isCustom: readSettings().saveDir === dir };
+    });
+
+    // 弹目录选择框, 选中的目录写进 settings 并立即生效(后续读写文档都走它)。
+    ipcMain.handle('xdraft:app:chooseSaveDir', async () => {
+        const current = getDiagramsDir();
+
+        const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+            title: '选择文档保存目录',
+            defaultPath: current,
+            // createDirectory: macOS 上允许在对话框里新建文件夹; Windows/Linux 忽略。
+            properties: ['openDirectory', 'createDirectory'],
+        });
+
+        if (canceled || !Array.isArray(filePaths) || filePaths.length === 0) {
+            return { canceled: true };
+        }
+
+        const dir = filePaths[0];
+
+        try {
+            await fsp.mkdir(dir, { recursive: true });
+        } catch (ex) {
+            console.error('[xdraft] 无法创建所选目录:', ex);
+
+            return { canceled: true, error: `无法创建目录: ${dir}` };
+        }
+
+        writeSettings({ ...readSettings(), saveDir: dir });
+
+        console.log(`[xdraft] 文档保存目录已设为: ${dir}`);
+
+        return { canceled: false, dir };
     });
 
     // 渲染进程询问完毕: allow=true 真关, false 取消。

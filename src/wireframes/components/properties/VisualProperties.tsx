@@ -5,7 +5,7 @@
  * Copyright (c) Sebastian Stehle. All rights reserved.
 */
 
-import { Button, Col, Row, Select, Slider, Space, Switch } from 'antd';
+import { AutoComplete, Button, Col, Row, Select, Slider, Space, Switch } from 'antd';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Color, ColorPicker, useEventCallback } from '@app/core';
@@ -120,11 +120,18 @@ export const VisualProperties = React.memo(() => {
                     <Row className={rowClass(fontSize)}>
                         <Col span={12} className='property-label'>{texts.common.fontSize}</Col>
                         <Col span={12} className='property-value'>
-                            <Select disabled={fontSize.empty} value={fontSize.value} onChange={setFontSize}>
-                                {DEFINED_FONT_SIZES.map(value =>
-                                    <Select.Option key={value.toString()} value={value}>{value}</Select.Option>,
-                                )}
-                            </Select>
+                            {/* 字号可选也可输入(1.0.4-6):AutoComplete 保留预设下拉,
+                                同时允许键入任意数值;键入的非法内容(非正数)不生效。 */}
+                            <AutoComplete disabled={fontSize.empty}
+                                value={fontSize.value != null ? String(fontSize.value) : undefined}
+                                options={DEFINED_FONT_SIZES.map(value => ({ value: value.toString() }))}
+                                onChange={rawValue => {
+                                    const parsed = Number(rawValue);
+
+                                    if (Number.isFinite(parsed) && parsed > 0) {
+                                        setFontSize(Math.round(parsed));
+                                    }
+                                }} />
                         </Col>
                     </Row>
                     <Row className={rowClass(strokeThickness)}>

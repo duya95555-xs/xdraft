@@ -16,6 +16,7 @@ import { DiagramProperties } from './DiagramProperties';
 import { Experimental } from './Experimental';
 import { LayoutProperties } from './LayoutProperties';
 import { MoreProperties } from './MoreProperties';
+import { ResetStyleButton } from './ResetStyleButton';
 import { ShapeCode } from './ShapeCode';
 import { TransformProperties } from './TransformProperties';
 import { VisualProperties } from './VisualProperties';
@@ -35,7 +36,13 @@ const layoutItems: CollapseProps['items'] = [
     {
         key: 'visual',
         label: texts.common.visual,
-        children: <VisualProperties />,
+        children: (
+            <>
+                <VisualProperties />
+
+                <ResetStyleButton />
+            </>
+        ),
     },
     {
         key: 'more',

@@ -17,12 +17,21 @@ xdraft is built on top of [mydraft.cc](https://mydraft.cc), the open-source wire
 - **Desktop app** — Electron packaging for Windows (NSIS installer / portable), Linux (deb / AppImage), macOS (dmg, see below)
 - **Offline-first** — icon fonts (Font Awesome / Material Icons) are inlined as base64: no CDN requests, no white screen on offline machines, and exported PNGs keep their icons (font CSS is injected into the exported SVG)
 - **Flow connectors** — line style (solid / dashed / dotted), custom color, and per-side arrow heads (none / single / double)
+- **New in v1.0.4** — 8 items on top of the 1.0.3 codebase plus a merged template library (no AI):
+  - **Custom save directory** — set it from the Recent panel; new diagrams are saved there until you change it again
+  - **Recent list export** — one click exports the recent list to CSV (name / savedAt / path)
+  - **Group freeze fix** — cycle detection prevents editor hangs on nested / repeated grouping
+  - **Axure-style shape ordering** — the shape panel follows Axure's category order
+  - **Shape style memory** — same-type shapes reuse your last style; "restore default style" resets it
+  - **Free font-size input** — type a number in the font-size box and press Enter
+  - **Top-bar issue notes** — record problems via the lightbulb; entries can be viewed and copied
+  - **Session log panel** — full operation log with copy / download / clear
 - **UOS-friendly** — optimized slim build (`slim-build.sh`) targeting Debian-based arm64 systems such as UOS
 - All wireframing capabilities of the original tool: shapes, icon panels, exported PNG/HTML, localization (zh-CN / en-US)
 
 ## Download
 
-Direct downloads (v1.0.2):
+Direct downloads (v1.0.2). **v1.0.4** builds (Windows / Linux arm64 / macOS) are produced by CI and attached to the [Releases](https://github.com/duya95555-xs/xdraft/releases) page:
 
 | File | Platform | Notes |
 |---|---|---|

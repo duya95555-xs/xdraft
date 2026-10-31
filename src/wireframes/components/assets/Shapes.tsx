@@ -23,6 +23,26 @@ import './Shapes.scss';
 // 参见 mydraft-资产面板与连线锚点-方案-v1.md 第 1、3 章。
 const FLOWCHART_SHAPES = new Set(['Rectangle', 'RoundedRectangle', 'Diamond']);
 
+// 表单形状组的展示顺序:按 Axure 默认组件库的排列习惯(图片→文字→按钮→输入控件→
+// 容器→设备→装饰),和 Axure 用户的心智模型保持一致。表里没有的形状保持注册序,
+// 稳定排在列出的形状之后。"流程图形状"分组不套用这个顺序(见下方分组逻辑)。
+const AXURE_SHAPE_ORDER: string[] = [
+    'Image', 'Raster',            // 图片
+    'Heading', 'Label', 'Paragraph', // 文字
+    'Button', 'Link', 'ButtonBar',   // 按钮/链接
+    'RadioButton', 'Checkbox', 'Toggle', // 选择
+    'Dropdown', 'ComboBox', 'List',  // 列表
+    'TextInput', 'TextArea', 'Numeric', 'Slider', // 输入
+    'Progress', 'Tabs',              // 反馈/导航
+    'Icon', 'Shape', 'Circle',       // 图形
+    'Browser', 'Grid',               // 容器
+    'Window', 'WindowsWindow', 'Phone', 'Tablet', // 设备
+    'HorizontalLine', 'VerticalLine', 'HorizontalScrollbar', 'VerticalScrollbar', // 线与滚动条
+    'Comment',                       // 注释
+];
+
+const AXURE_ORDER_INDEX = new Map(AXURE_SHAPE_ORDER.map((name, i) => [name, i]));
+
 // 分组标识(用于折叠状态)。折叠状态持久化到 localStorage 的键。
 const GROUP_FLOWCHART = 'flowchart';
 const GROUP_FORM = 'form';
@@ -194,7 +214,8 @@ export const Shapes = () => {
         return <ShapeCell iconSize={iconSize} onAdd={doAdd} shape={shape} />;
     }, [doAdd, iconSize]);
 
-    // 拆成两个分组:流程图形状 / 表单形状。
+    // 拆成两个分组:流程图形状 / 表单形状。表单组内按 Axure 组件库顺序排列,
+    // 流程图组保持固定顺序(Rectangle → RoundedRectangle → Diamond)不动。
     const { formShapes, flowchartShapes } = React.useMemo(() => {
         const flowchartShapes: ShapeInfo[] = [];
         const formShapes: ShapeInfo[] = [];
@@ -206,6 +227,12 @@ export const Shapes = () => {
                 formShapes.push(shape);
             }
         }
+
+        // Array.prototype.sort 在现代引擎里是稳定排序:AXURE_ORDER_INDEX 里没有的
+        // 形状索引为 undefined(Number(undefined)=NaN),比较结果为 0,保持注册序。
+        const order = (shape: ShapeInfo) => AXURE_ORDER_INDEX.get(shape.name) ?? Number.MAX_SAFE_INTEGER;
+
+        formShapes.sort((lhs, rhs) => order(lhs) - order(rhs));
 
         return { flowchartShapes, formShapes };
     }, [shapesFiltered]);

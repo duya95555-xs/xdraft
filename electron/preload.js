@@ -15,6 +15,8 @@ const CHANNEL_WRITE = 'xdraft:diagram:write';
 const CHANNEL_REMOVE = 'xdraft:diagram:remove';
 const CHANNEL_SAVE_AS = 'xdraft:diagram:saveAs';
 const CHANNEL_SAVE_BLOB = 'xdraft:app:saveBlob';
+const CHANNEL_GET_SAVE_DIR = 'xdraft:app:getSaveDir';
+const CHANNEL_CHOOSE_SAVE_DIR = 'xdraft:app:chooseSaveDir';
 const CHANNEL_BEFORE_CLOSE = 'xdraft:window:beforeClose';
 const CHANNEL_CLOSE_CONFIRMED = 'xdraft:window:closeConfirmed';
 
@@ -36,6 +38,11 @@ contextBridge.exposeInMainWorld('xdraftApp', {
     // data 必须是 Uint8Array(IPC 结构化克隆)。
     saveBlob: (suggestedName, data, filterName, extensions) =>
         ipcRenderer.invoke(CHANNEL_SAVE_BLOB, suggestedName, data, filterName, extensions),
+
+    // 文档保存目录: getSaveDir 返回 { dir, isCustom }; chooseSaveDir 弹目录选择框,
+    // 选中后写进主进程 settings.json 并立即生效, 返回 { canceled, dir? }。
+    getSaveDir: () => ipcRenderer.invoke(CHANNEL_GET_SAVE_DIR),
+    chooseSaveDir: () => ipcRenderer.invoke(CHANNEL_CHOOSE_SAVE_DIR),
 
     // 关窗保护: 主进程在窗口即将关闭时发来事件, 由渲染进程决定"保存并关闭 / 直接关闭 / 取消"。
     // 返回一个取消订阅函数(React 里放在 useEffect 的 cleanup 中)。

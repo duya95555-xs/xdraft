@@ -389,7 +389,8 @@ export class TransformAdorner extends React.PureComponent<TransformAdornerProps>
             return null;
         }
 
-        const stored = parseAspectRatio(items[0].appearance.get(ASPECT_RATIO));
+        // Group 没有 appearance,可选链落到 parseAspectRatio(undefined) → null。
+        const stored = parseAspectRatio(items[0].appearance?.get(ASPECT_RATIO));
 
         if (stored) {
             return stored;

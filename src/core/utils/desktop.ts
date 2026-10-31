@@ -19,6 +19,9 @@ export interface LocalDiagramInfo {
 
     // 文件大小(字节)。
     bytes: number;
+
+    // 完整文件路径(用于"最近文档"清单导出)。
+    path?: string;
 }
 
 export interface LocalDiagramsBridge {
@@ -39,6 +42,10 @@ export interface DesktopBridge {
 
     // 导出二进制(png/html): 弹系统"另存为"对话框, 记住上次目录。
     saveBlob?(suggestedName: string, data: Uint8Array, filterName?: string, extensions?: string[]): Promise<{ canceled: boolean; file?: string; bytes?: number }>;
+
+    // 文档保存目录: getSaveDir 返回当前目录; chooseSaveDir 弹目录选择框并持久化。
+    getSaveDir?(): Promise<{ dir: string; isCustom: boolean }>;
+    chooseSaveDir?(): Promise<{ canceled: boolean; dir?: string; error?: string }>;
 
     // 关窗保护: 窗口即将关闭时回调, 由渲染进程决定放行还是取消。
     onBeforeClose?(handler: () => void): () => void;

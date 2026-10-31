@@ -77,28 +77,15 @@ export function ensureIconFonts() {
 
 // 等待图标字体完成字面加载。用于导出前的排版稳定:
 // 字体未就绪时浏览器会按回退字体测量文本宽度, foreignObject 里的字形位置会偏。
-//
-// 带超时兜底(默认 3 秒): document.fonts.load 在极端情况下(字体数据损坏、系统字体
-// 子系统异常)可能长时间不回调, 导出流程会跟着挂死。超时后按当前状态继续渲染,
-// 最多损失一点字形排版精度, 不会卡住用户。
-export function waitForIconFonts(timeoutMs = 3000): Promise<unknown> {
+export function waitForIconFonts(): Promise<unknown> {
     const fontSet = (document as any).fonts;
 
     if (ICON_FONT_FAMILIES.length === 0 || !fontSet?.load) {
         return Promise.resolve();
     }
 
-    const loading = Promise.all(
+    return Promise.all(
         ICON_FONT_FAMILIES.map(family =>
             Promise.resolve(fontSet.load(`16px '${family}'`)).catch(() => undefined)),
     );
-
-    return new Promise(resolve => {
-        const timer = setTimeout(() => resolve(undefined), timeoutMs);
-
-        loading.then(() => {
-            clearTimeout(timer);
-            resolve(undefined);
-        });
-    });
 }

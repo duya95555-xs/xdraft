@@ -152,14 +152,19 @@ function flattenRootItems(items: ReadonlyArray<string | DiagramItem>, diagram: D
         source.set(item.id, item);
     }
 
-    unrollParent(byRoot, diagram, allItems);
+    // 防御:文档数据若因历史 bug 带上了互相嵌套的组(childIds 成环),这里的递归
+    // 会无限深入直到栈溢出把渲染进程打崩(与 items.ts resolveGroup 的环检测同理)。
+    // visited 在单次摊平过程中共享,重复访问到立即跳过。
+    const visited = new Set<string>();
 
-    for (const byParent of byParents.values()) {        
-        unrollParent(byParent, diagram, allItems);
+    unrollParent(byRoot, diagram, allItems, visited);
+
+    for (const byParent of byParents.values()) {
+        unrollParent(byParent, diagram, allItems, visited);
     }
 }
 
-function unrollParent(byParent: OrderedItems, diagram: Diagram, allItems: Map<string, DiagramItem>) {
+function unrollParent(byParent: OrderedItems, diagram: Diagram, allItems: Map<string, DiagramItem>, visited: Set<string>) {
     if (byParent.length === 0) {
         return;
     }
@@ -167,26 +172,32 @@ function unrollParent(byParent: OrderedItems, diagram: Diagram, allItems: Map<st
     byParent.sort((a, b) => a.orderIndex - b.orderIndex);
 
     for (const { item } of byParent) {
+        if (visited.has(item.id)) {
+            continue;
+        }
+
+        visited.add(item.id);
         allItems.set(item.id, item);
 
         if (item.type === 'Group') {
-            unrollItems(item.childIds.values, diagram, allItems);
+            unrollItems(item.childIds.values, diagram, allItems, visited);
         }
     }
 }
 
-function unrollItems(source: ReadonlyArray<string>, diagram: Diagram, allItems: Map<string, DiagramItem>) {
+function unrollItems(source: ReadonlyArray<string>, diagram: Diagram, allItems: Map<string, DiagramItem>, visited: Set<string>) {
     for (const itemOrId of source) {
         let item = diagram.items.get(itemOrId);
 
-        if (!item) {
+        if (!item || visited.has(item.id)) {
             continue;
         }
 
+        visited.add(item.id);
         allItems.set(item.id, item);
 
         if (item.type === 'Group') {
-            unrollItems(item.childIds.values, diagram, allItems);
+            unrollItems(item.childIds.values, diagram, allItems, visited);
         }
     }
 }

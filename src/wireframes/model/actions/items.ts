@@ -15,6 +15,7 @@ import { Side } from '@app/wireframes/shapes/neutral/_connector-routing';
 import { Connect } from '@app/wireframes/shapes/neutral/connect';
 import { Diagram, DiagramItem, DiagramItemSet, EditorState, PluginRegistry, Serializer, Transform } from './../internal';
 import { DefaultConfigurableFactory } from './../factories';
+import { getRememberedStyle } from './../shape-style-memory';
 import { createDiagramAction, createItemsAction, DiagramRef, ItemsRef } from './utils';
 
 // 合法的边标识,用于校验从 appearance 里读出来的 SIDES 是否可信。
@@ -308,19 +309,24 @@ export function buildItems(builder: ActionReducerMapBuilder<EditorState>) {
 
                 const { size: defaultSize, appearance: defaults, ...other } = registration.createDefaultShape();
 
+                // 样式记忆(1.0.4-5):该类型形状被用户改过样式的话,默认套用记住的风格;
+                // 调用方显式传入的 appearance(如连接线场景)优先级最高。
+                // 连线类型(_Connect)的创建走 addConnector,这里不影响。
+                const remembered = getRememberedStyle(renderer);
+
                 const initialSize = size || defaultSize;
                 const initialProps = {
                     ...other,
                     id,
                     transform: new Transform(
                         new Vec2(
-                            (position?.x || 0) + 0.5 * initialSize.x, 
+                            (position?.x || 0) + 0.5 * initialSize.x,
                             (position?.y || 0) + 0.5 * initialSize.y),
                         new Vec2(
                             initialSize.x,
-                            initialSize.y), 
+                            initialSize.y),
                         Rotation.ZERO),
-                    appearance: { ...defaults || {}, ...appearance },
+                    appearance: { ...defaults || {}, ...remembered || {}, ...appearance },
                 };
 
                 const shape = DiagramItem.createShape(initialProps);
@@ -458,14 +464,21 @@ export function calculateSelection(items: ReadonlyArray<DiagramItem>, diagram: D
     let selectedItems: DiagramItem[] = [];
 
     function resolveGroup(item: DiagramItem, stop?: DiagramItem) {
+        // 防御:文档数据损坏(如互相嵌套的组,粘贴/撤销序列可能产生)时 parent 链
+        // 可能成环,这里的 while(true) 会永远转下去把主线程卡死 —— UOS 上表现为
+        // "组合后整机死机"。给链条加 visited 环检测,一旦重复访问立即跳出。
+        const visited = new Set<string>([item.id]);
+
         while (true) {
             const group = diagram.parent(item.id);
 
-            if (!group || group === stop) {
+            if (!group || group === stop || visited.has(group.id)) {
                 break;
-            } else {
-                item = group;
             }
+
+            visited.add(group.id);
+
+            item = group;
         }
 
         return item;

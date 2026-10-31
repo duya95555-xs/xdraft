@@ -38,12 +38,28 @@ export default defineConfig({
         outDir: isElectron ? 'dist-electron' : 'dist',
     },
 
-    // Dev proxy for the local diagram storage API (server.py).
-    // Start it with: python server.py --port 8901 --directory <any-folder-with-index.html>
+    // Dev proxy for the local diagram storage API (tools/local-server.mjs, 端口 8901)。
+    // 补/api/config：服务端有这条路由（保存目标配置读写），
+    // 但此前未代理，浏览器 dev 下改保存目录会失败。
+    // 补 /api/templates：模板库检索（Axure RAG，方案 §9）。
+    //   方案原本要另起 5301 端口的 template-server，实际挂在 8901 上——
+    //   复用这里的 proxy，少一个进程、少一层跨域。
     server: {
         port: 5173,
+        //端口被占用时直接报错退出，不要静默改用 5174/5175。
+        // 原因：一键启动脚本会提示"打开 5173"，若 vite 悄悄换端口，
+        // 用户打开 5173 看到的就是别的旧实例或空白页，极难排查。
+        strictPort: true,
         proxy: {
             '/api/diagrams': {
+                target: 'http://127.0.0.1:8901',
+                changeOrigin: true,
+            },
+            '/api/templates': {
+                target: 'http://127.0.0.1:8901',
+                changeOrigin: true,
+            },
+            '/api/config': {
                 target: 'http://127.0.0.1:8901',
                 changeOrigin: true,
             },

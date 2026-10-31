@@ -129,7 +129,8 @@ export const EditorViewInner = ({ panMode, connectMode, onPanModeChange, viewBox
     const editorRef = React.useRef<EditorHandle | null>(null);
 
     // F2 opens the inline text editor for the selected item.
-    const canEditText = !!selectedItem && !panMode && !selectedItem.isLocked && !selectedItem.textDisabled;
+    // 仅对 Shape 开放: Group 没有 appearance/文本,F2 对组无意义(且 TextAdorner 假设有 appearance)。
+    const canEditText = !!selectedItem && selectedItem.type === 'Shape' && !panMode && !selectedItem.isLocked && !selectedItem.textDisabled;
 
     const doEditText = useEventCallback(() => {
         if (canEditText) {

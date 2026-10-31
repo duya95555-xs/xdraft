@@ -18,12 +18,25 @@
  *   GET    /api/diagrams         → 列表(同上)
  *   GET    /api/config           → 当前保存目录 { saveDir }
  *   POST   /api/config           → 修改保存目录 { saveDir },立即生效并持久化
+ *
+ * 模板库(Axure RAG,2026-10-03 新增,方案 §9):
+ *   GET    /api/templates?domain=&tag=&q=&limit=
+ *                               → 列表(q 非空时走检索,否则按图元数倒序)
+ *   POST   /api/templates/search → 检索 body {query,limit} → top-N 卡片
+ *   GET    /api/templates/:id          → 单模板 meta
+ *   GET    /api/templates/:id/diagram  → 单页 mydraft JSON(插入画布用)
+ *   GET    /api/templates/:id/thumb     → 缩略图 PNG
+ *
+ *   方案 §9 原本要另起 5301 端口的 template-server;这里挂在 8901 上,
+ *   复用现成的 vite proxy —— 少一个进程、少一层跨域。
+ *   索引懒加载 + 按 catalog.json 的 mtime 失效,转换产物重跑后无需重启。
  */
 
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadTemplateIndex, toCard } from './template-lib/template-search.mjs';
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_DIR = path.join(PROJECT_ROOT, 'diagrams');
@@ -90,6 +103,127 @@ function readBody(req) {
     });
 }
 
+// ── 模板库（Axure RAG）────────────────────────────────────────────────────
+// 索引构建较慢（1511 模板 × 6 字段），所以懒加载 + 缓存：
+// 首次请求几百毫秒，之后直接命中。目录 mtime 变化时自动重建
+// （转换产物重跑后不用手动重启服务）。
+const TEMPLATES_DIR = path.join(PROJECT_ROOT, 'templates');
+let tplIndex = null;
+let tplIndexMtime = 0;
+
+function getTemplateIndex() {
+    const catPath = path.join(TEMPLATES_DIR, 'catalog.json');
+
+    if (!fs.existsSync(catPath)) return null;
+
+    const mtime = fs.statSync(catPath).mtimeMs;
+
+    if (tplIndex && tplIndexMtime === mtime) return tplIndex;
+
+    tplIndex = loadTemplateIndex(TEMPLATES_DIR);
+    tplIndexMtime = mtime;
+    console.log(`[templates] 索引已构建: ${tplIndex.size} 个模板`);
+    return tplIndex;
+}
+
+function sendFile(res, file, contentType) {
+    if (!fs.existsSync(file)) {
+        return send(res, 404, { error: 'not found' });
+    }
+    const buf = fs.readFileSync(file);
+    res.writeHead(200, {
+        'Content-Type': contentType,
+        'Content-Length': buf.length,
+        // 开发期不缓存，改完模板刷新即可见
+        'Cache-Control': 'no-cache',
+    });
+    res.end(buf);
+}
+
+async function handleTemplates(req, res, url) {
+    const idx = getTemplateIndex();
+
+    if (!idx) {
+        return send(res, 503, {
+            error: '模板库未初始化',
+            hint: '先跑 tools/axure-html/batch-convert.py 与 tools/template-lib/build-library.py',
+        });
+    }
+
+    // GET /api/templates?domain=&tag=&q=&limit=
+    if (url.pathname === '/api/templates') {
+        if (req.method !== 'GET') return send(res, 405, { error: 'method not allowed' });
+
+        const domain = url.searchParams.get('domain') || '';
+        const tag = url.searchParams.get('tag') || '';
+        const q = (url.searchParams.get('q') || '').trim();
+        const limit = Math.min(parseInt(url.searchParams.get('limit') || '60', 10) || 60, 500);
+
+        let rows;
+
+        if (q) {
+            rows = idx.search(q, limit).map(r => toCard(r.tpl, r.score, TEMPLATES_DIR));
+        } else {
+            // 无查询词时按图元数倒序 —— 复杂页面更有参考价值
+            const all = idx.tpls
+                .filter(t => (!domain || t.domain === domain)
+                    && (!tag || t.tags.split(' ').includes(tag)))
+                .sort((a, b) => b.itemCount - a.itemCount)
+                .slice(0, limit);
+            rows = all.map(t => toCard(t, 0, TEMPLATES_DIR));
+        }
+
+        return send(res, 200, {
+            total: rows.length,
+            indexed: idx.size,
+            domains: [...new Set(idx.tpls.map(t => t.domain))].filter(Boolean).sort(),
+            tags: [...new Set(idx.tpls.flatMap(t => t.tags.split(' ')).filter(Boolean))].sort(),
+            templates: rows,
+        });
+    }
+
+    // POST /api/templates/search   body: {query, limit}
+    if (url.pathname === '/api/templates/search') {
+        if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
+        try {
+            const body = JSON.parse((await readBody(req)).toString('utf-8') || '{}');
+            const query = String(body.query || '').trim();
+            const limit = Math.min(parseInt(body.limit || '8', 10) || 8, 50);
+            if (!query) return send(res, 400, { error: 'query required' });
+            const rows = idx.search(query, limit).map(r => toCard(r.tpl, r.score, TEMPLATES_DIR));
+            return send(res, 200, { query, total: rows.length, templates: rows });
+        } catch (e) {
+            return send(res, 400, { error: String(e.message || e) });
+        }
+    }
+
+    // GET /api/templates/:id          单模板元数据
+    // GET /api/templates/:id/diagram  单页 mydraft JSON
+    // GET /api/templates/:id/thumb     缩略图 PNG
+    const m = /^\/api\/templates\/([\w-]+)(?:\/(diagram|thumb|meta))?$/.exec(url.pathname);
+    if (m) {
+        const [, id, kind] = m;
+        if (!/^tpl_[0-9a-f]+$/.test(id)) return send(res, 400, { error: 'bad id' });
+
+        if (!kind || kind === 'meta') {
+            const f = path.join(TEMPLATES_DIR, 'meta', `${id}.json`);
+            if (!fs.existsSync(f)) return send(res, 404, { error: 'no such template' });
+            return sendFile(res, f, 'application/json; charset=utf-8');
+        }
+        if (kind === 'diagram') {
+            const f = path.join(TEMPLATES_DIR, 'diagram', `${id}.json`);
+            if (!fs.existsSync(f)) return send(res, 404, { error: 'no diagram' });
+            return sendFile(res, f, 'application/json; charset=utf-8');
+        }
+        if (kind === 'thumb') {
+            const f = path.join(TEMPLATES_DIR, 'thumbs', `${id}.png`);
+            return sendFile(res, f, 'image/png');
+        }
+    }
+
+    return send(res, 404, { error: 'not found' });
+}
+
 const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${HOST}`);
 
@@ -117,6 +251,13 @@ const server = http.createServer(async (req, res) => {
         }
 
         return send(res, 405, { error: 'method not allowed' });
+    }
+
+    // ── 模板库（Axure RAG）──────────────────────────────────────────────────
+    // 方案 §9 原本要另起一个 5301 端口的 template-server；这里挂到 8901，
+    // 复用现成的 vite proxy，少一个进程少一层跨域。
+    if (url.pathname.startsWith('/api/templates')) {
+        return handleTemplates(req, res, url);
     }
 
     // ── 文档读写 ────────────────────────────────────────────────────────────

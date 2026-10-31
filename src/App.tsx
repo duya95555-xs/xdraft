@@ -11,7 +11,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ClipboardContainer, Control, useEventCallback, usePrinter } from '@app/core';
-import { ArrangeMenu, ClipboardMenu, CloseGuardDialog, ConnectToolMenu, EditorView, HandToolMenu, HistoryMenu, Icons, LoadingMenu, LockMenu, Outline, Pages, PrintView, Properties, Recent, SettingsMenu, Shapes, UIMenu, ZoomMenu } from '@app/wireframes/components';
+import { ArrangeMenu, ClipboardMenu, CloseGuardDialog, ConnectToolMenu, EditorView, HandToolMenu, HistoryMenu, Icons, IssueReporter, LoadingMenu, LockMenu, LogPanel, Outline, Pages, PrintView, Properties, Recent, SettingsMenu, Shapes, UIMenu, ZoomMenu } from '@app/wireframes/components';
 import { loadDiagramFromServer, newDiagram, selectTab, showToast, toggleLeftSidebar, toggleRightSidebar, useStore } from '@app/wireframes/model';
 import { useAppDispatch } from './store';
 import { texts } from './texts';
@@ -194,6 +194,10 @@ export const App = () => {
                             </div>
 
                             <div>
+                                <IssueReporter />
+
+                                <LogPanel />
+
                                 <LoadingMenu />
                             </div>
                         </div>

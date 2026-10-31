@@ -121,7 +121,7 @@ Vite dev server 在 `localhost:5173` 启动，Electron 窗口自动加载该地�
 ### 4.2 完整构建命令
 
 ```bash
-# 1. 进入代码目录（如果是从 xdraft-deploy.zip 解压的，就是 ~/xdraft）
+# 1. 进入代码目录（如果是从源码 tar 包解压的，就是 ~/xdraft）
 cd ~/xdraft
 
 # 2. 配国内镜像（否则 electron / electron-builder 二进制会从 GitHub 龟速下载）
@@ -144,9 +144,9 @@ npm run electron:build:linux-arm64
 
 | 文件名                                  | 格式      | 说明                       |
 |-----------------------------------------|-----------|---------------------------|
-| `xdraft-1.0.0-arm64.AppImage`          | AppImage  | 免安装，双击运行            |
-| `xdraft_1.0.0_arm64.deb`               | DEB       | UOS / Debian / Ubuntu 包   |
-| `xdraft-1.0.0.arm64.rpm`               | RPM       | CentOS / openEuler 包      |
+| `xdraft-1.0.4-arm64.AppImage`          | AppImage  | 免安装，双击运行            |
+| `xdraft_1.0.4_arm64.deb`               | DEB       | UOS / Debian / Ubuntu 包   |
+| `xdraft-1.0.4.arm64.rpm`               | RPM       | CentOS / openEuler 包      |
 | `linux-arm64-unpacked/`                 | 目录      | 解压后的全部文件            |
 
 ### 4.3 仅打包不下载 Electron（离线构建）
@@ -176,11 +176,11 @@ docker run --rm --platform linux/arm64 \
 
 ```bash
 # 1. 复制到 UOS 机器
-scp release/xdraft-1.0.0-arm64.AppImage user@uos:~/
+scp release/xdraft-1.0.4-arm64.AppImage user@uos:~/
 
 # 2. 在 UOS 终端中授权并运行
-chmod +x xdraft-1.0.0-arm64.AppImage
-./xdraft-1.0.0-arm64.AppImage
+chmod +x xdraft-1.0.4-arm64.AppImage
+./xdraft-1.0.4-arm64.AppImage
 ```
 
 #### 可选：集成到启动器
@@ -188,7 +188,7 @@ chmod +x xdraft-1.0.0-arm64.AppImage
 ```bash
 # 复制到应用程序目录
 mkdir -p ~/.local/share/applications
-cp xdraft-1.0.0-arm64.AppImage ~/.local/bin/xdraft
+cp xdraft-1.0.4-arm64.AppImage ~/.local/bin/xdraft
 
 # 创建 desktop 条目
 cat > ~/.local/share/applications/xdraft.desktop << 'EOF'
@@ -196,7 +196,7 @@ cat > ~/.local/share/applications/xdraft.desktop << 'EOF'
 Type=Application
 Name=xdraft
 Comment=Diagram Editor
-Exec=/home/用户名/.local/bin/xdraft/xdraft-1.0.0-arm64.AppImage
+Exec=/home/用户名/.local/bin/xdraft/xdraft-1.0.4-arm64.AppImage
 Icon=/home/用户名/.local/share/icons/xdraft.png
 Categories=Graphics;
 EOF
@@ -210,10 +210,10 @@ cp electron/icon.png ~/.local/share/icons/xdraft.png
 
 ```bash
 # 1. 复制到 UOS 机器
-scp release/xdraft_1.0.0_arm64.deb user@uos:~/
+scp release/xdraft_1.0.4_arm64.deb user@uos:~/
 
 # 2. 在 UOS 终端中安装
-sudo dpkg -i xdraft_1.0.0_arm64.deb
+sudo dpkg -i xdraft_1.0.4_arm64.deb
 # 如有依赖缺失：
 sudo apt-get install -f
 
@@ -257,10 +257,10 @@ UOS ARM64 满足以上全部要求。
 
 ```bash
 # 查看详细启动日志
-./xdraft-1.0.0-arm64.AppImage --enable-logging
+./xdraft-1.0.4-arm64.AppImage --enable-logging
 
 # 强制使用软件渲染（若 GPU 兼容问题）
-./xdraft-1.0.0-arm64.AppImage --disable-gpu
+./xdraft-1.0.4-arm64.AppImage --disable-gpu
 
 # 检查依赖完整性
 ldd release/linux-arm64-unpacked/xdraft | grep "not found"
@@ -279,38 +279,45 @@ ldd release/linux-arm64-unpacked/xdraft | grep "not found"
 
 ### 7.1 制作部署包
 
-工程已提供 `deploy-to-uos.ps1` 脚本（Windows PowerShell）自动打 zip：
+当前发版用源码 tar 包（与《部署说明.md》一致），剔除体积大或目标机无用的内容：
 
-```powershell
-.\deploy-to-uos.ps1
+```bash
+tar -czf xdraft-1.0.4-src-$(date +%Y%m%d-%H%M).tar.gz \
+  --exclude='xdraft-1.0.4/node_modules' \
+  --exclude='xdraft-1.0.4/templates' \
+  --exclude='xdraft-1.0.4/dist-electron' \
+  --exclude='xdraft-1.0.4/release-slim' \
+  xdraft-1.0.4
 ```
 
-输出 `release/xdraft-deploy.zip`，通常只有 10-30 MB。
+包内已含 `package-lock.json`（锁定依赖版本），目标机解压后 `npm install` 重建依赖即可。
 
-### 7.2 手动打包（如果不用脚本）
+### 7.2 包内容
 
-把以下内容拷贝到同一个 zip 中：
-
-**顶层文件（全部）：**
+源码 tar 包顶层文件：
 
 ```
+部署说明.md
+一键启动.bat
+electron-builder-optimized.yml
 index.html
+LICENSE
 package.json
 package-lock.json
-vite.config.ts
-vitest.config.ts
-tsconfig.json
-tsconfig.node.json
-.env
-README.electron.md
+README.md / README.zh-CN.md / README.electron.md
+slim-build.sh
+tsconfig.json / tsconfig.node.json
+vite.config.ts / vitest.config.ts
 ```
 
-**顶层目录（整体保留）：**
+顶层目录（整体保留）：
 
 ```
-electron/        （main.js、preload.js、icon.png、xdraft.desktop）
-src/             （但排除 *.spec.ts、*.stories.tsx 等测试/演示文件）
+electron/        （main.js、preload.js、icon.png、icons/、xdraft.desktop）
+src/             （应用源码）
 public/          （静态资源：favicon、logo 等）
+tools/           （local-server.mjs 本机保存服务、图标字体生成脚本等）
+tests/、docs/、diagrams/、.github/   （测试、文档、本地草稿、CI 配置，体积小随包备份）
 ```
 
 ### 7.3 必须排除的内容
@@ -318,12 +325,9 @@ public/          （静态资源：favicon、logo 等）
 | 路径/文件模式 | 原因 |
 |---|---|
 | `node_modules/` | 平台特定（Windows 装的无法在 UOS arm64 运行），目标机器需要 `npm install` 重新生成 |
-| `dist/`、`dist-electron/`、`release/` | 构建产物，目标机会重新生成 |
+| `templates/` | 模板库数据体积大；需要时放到目标机 `xdraft-1.0.4/templates/` 即可，`local-server.mjs` 会自动识别（见《部署说明.md》） |
+| `dist/`、`dist-electron/`、`release/`、`release-slim/` | 构建产物，目标机会重新生成 |
 | `.git/` | 版本控制数据 |
-| `*/\.storybook/`、`docs/`、`screenshots/` | 文档与演示，与构建无关 |
-| `*.spec.ts(x)`、`*.stories.tsx` | 测试文件，不参与应用运行 |
-| `coverage/`、`.eslintcache` | 缓存与覆盖率输出 |
-| `orbita/`（如存在） | 临时工程目录 |
 
 **`package-lock.json` 必须带去**，它会锁定依赖版本，确保 UOS 上构建产物与本地一致。
 
@@ -331,11 +335,11 @@ public/          （静态资源：favicon、logo 等）
 
 ```bash
 # 1. 发送
-scp release/xdraft-deploy.zip user@uos-host:~/
+scp xdraft-1.0.4-src-*.tar.gz user@uos-host:~/
 
 # 2. 在 UOS 上解压
 ssh user@uos-host
-unzip xdraft-deploy.zip -d ~/xdraft && cd ~/xdraft
+mkdir -p ~/xdraft && tar -xzf ~/xdraft-1.0.4-src-*.tar.gz -C ~/xdraft --strip-components=1 && cd ~/xdraft
 
 # 3. 确认 Node 已就绪（未装则按 §4.1 安装）
 node -v && npm -v                    # 需 >= 20.19 / 22.12，推荐 24.x
@@ -399,7 +403,7 @@ function AppRouter({ children }: { children: ReactNode }) {
 用终端启动即可看到渲染进程的 warning/error；要 DevTools：
 
 ```bash
-XDRAFT_DEBUG=1 ./release/xdraft-1.0.0-arm64.AppImage
+XDRAFT_DEBUG=1 ./release/xdraft-1.0.4-arm64.AppImage
 ```
 
 ### 7.7 白屏的第三个原因：外链图标字体阻塞首帧
@@ -436,7 +440,7 @@ for (const link of Array.from(document.querySelectorAll<HTMLLinkElement>('link[d
 ### 7.8 AppImage 在 arm64 上报 `libz.so` 缺失（与代码无关）
 
 ```
-./xdraft-1.0.0-arm64.AppImage: error while loading shared libraries:
+./xdraft-1.0.4-arm64.AppImage: error while loading shared libraries:
 libz.so: cannot open shared object file: No such file or directory
 ```
 
@@ -460,7 +464,7 @@ sudo ln -s /usr/lib/aarch64-linux-gnu/libz.so.1 /usr/lib/aarch64-linux-gnu/libz.
 # ③ 完全不动系统（免 sudo）：本地造一个软链目录，让 ld.so 去找
 mkdir -p ~/.local/libzfix
 ln -sf /usr/lib/aarch64-linux-gnu/libz.so.1 ~/.local/libzfix/libz.so
-LD_LIBRARY_PATH=~/.local/libzfix ./xdraft-1.0.0-arm64.AppImage
+LD_LIBRARY_PATH=~/.local/libzfix ./xdraft-1.0.4-arm64.AppImage
 ```
 
 **对本项目最重要的一条**：`deb` 包**不需要** `libz.so`，完全不受这个问题影响。
@@ -474,9 +478,9 @@ LD_LIBRARY_PATH=~/.local/libzfix ./xdraft-1.0.0-arm64.AppImage
 
 ```
 release/
-├── xdraft_1.0.0_arm64.deb         # UOS / Deepin / Debian 系（arm64 首选，无需 libz.so）
-├── xdraft-1.0.0-arm64.AppImage    # 免安装试用（arm64 上需先补 libz.so，见 §7.8）
-├── xdraft-1.0.0.aarch64.rpm       # CentOS/openEuler 包
+├── xdraft_1.0.4_arm64.deb         # UOS / Deepin / Debian 系（arm64 首选，无需 libz.so）
+├── xdraft-1.0.4-arm64.AppImage    # 免安装试用（arm64 上需先补 libz.so，见 §7.8）
+├── xdraft-1.0.4.aarch64.rpm       # CentOS/openEuler 包
 ├── linux-arm64-unpacked/           # 解压目录，可直接跑 ./xdraft（含排查用）
 └── builder-effective-config.yaml   # 构建配置记录
 ```

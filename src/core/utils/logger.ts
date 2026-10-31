@@ -26,10 +26,13 @@ export interface LogEntry {
     detail?: string;
 }
 
-const MAX_ENTRIES = 500;
+const MAX_ENTRIES = 2000;
 const STORAGE_KEY = 'xdraft.logs';
 
 let buffer: LogEntry[] = load();
+
+// 日志面板的实时刷新:新条目到达时通知订阅者(React 面板用)。
+const listeners: Array<(entry: LogEntry) => void> = [];
 
 function load(): LogEntry[] {
     try {
@@ -68,6 +71,14 @@ function log(level: LogLevel, scope: string, message: string, detail?: unknown) 
     }
 
     persist();
+
+    for (const listener of listeners) {
+        try {
+            listener(entry);
+        } catch {
+            // 面板的订阅回调出错不能反噬日志本身。
+        }
+    }
 }
 
 export function logInfo(scope: string, message: string, detail?: unknown) {
@@ -84,6 +95,26 @@ export function logError(scope: string, message: string, detail?: unknown) {
 
 export function getLogs(): ReadonlyArray<LogEntry> {
     return buffer;
+}
+
+/* 订阅新日志(返回取消订阅函数)。日志面板用它做实时刷新。 */
+export function subscribeLogs(listener: (entry: LogEntry) => void): () => void {
+    listeners.push(listener);
+
+    return () => {
+        const index = listeners.indexOf(listener);
+
+        if (index >= 0) {
+            listeners.splice(index, 1);
+        }
+    };
+}
+
+/* 清空全部日志(日志面板的"清空"按钮)。 */
+export function clearLogs() {
+    buffer = [];
+
+    persist();
 }
 
 /* Downloads all log entries as a plain text file. */

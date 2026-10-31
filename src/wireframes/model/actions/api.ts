@@ -126,6 +126,40 @@ export async function listLocalDiagrams(): Promise<LocalDiagramInfo[]> {
     return result;
 }
 
+// ── 文档保存目录 ────────────────────────────────────────────────────────────
+// Electron 里用户可以指定保存目录, 指定后一直是默认目录直到下次更改。
+// 浏览器里(无 bridge)返回 null, UI 据此隐藏这个入口。
+
+export function canChooseSaveDir() {
+    return typeof getDesktopBridge()?.chooseSaveDir === 'function';
+}
+
+export async function getLocalSaveDir(): Promise<{ dir: string; isCustom: boolean } | null> {
+    const bridge = getDesktopBridge();
+
+    if (typeof bridge?.getSaveDir !== 'function') {
+        return null;
+    }
+
+    return bridge.getSaveDir();
+}
+
+export async function chooseLocalSaveDir(): Promise<{ canceled: boolean; dir?: string; error?: string }> {
+    const bridge = getDesktopBridge();
+
+    if (typeof bridge?.chooseSaveDir !== 'function') {
+        return { canceled: true };
+    }
+
+    const result = await bridge.chooseSaveDir();
+
+    if (!result.canceled && result.dir) {
+        logInfo('api', `SAVE DIR set to "${result.dir}".`);
+    }
+
+    return result;
+}
+
 export async function readLocalDiagram(name: string) {
     const bridge = localBridge();
 

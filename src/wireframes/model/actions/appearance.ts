@@ -7,8 +7,10 @@
 
 import { ActionReducerMapBuilder, createAction } from '@reduxjs/toolkit';
 import { Color, Types } from '@app/core/utils';
+import { ImmutableMap } from '@app/core';
 import { CONNECTOR_RENDERER } from '@app/wireframes/shapes/neutral/_connector';
 import { DiagramItemSet, EditorState, PluginRegistry, Transform } from './../internal';
+import { forgetStyle, rememberStyle } from './../shape-style-memory';
 import { createItemsAction, DiagramRef, ItemsRef } from './utils';
 
 export const changeColors =
@@ -19,6 +21,13 @@ export const changeColors =
 export const changeItemsAppearance =
     createAction('items/appearance', (diagram: DiagramRef, shapes: ItemsRef, key: string, value: any, force = false) => {
         return { payload: createItemsAction(diagram, shapes, { appearance: { key, value }, force }) };
+    });
+
+// 恢复默认外观:把选中形状的 appearance 重置回 plugin.defaultAppearance()。
+// 同时清除该类型形状的"样式记忆"(1.0.4-5)。
+export const resetItemsAppearance =
+    createAction('items/appearance/reset', (diagram: DiagramRef, shapes: ItemsRef) => {
+        return { payload: createItemsAction(diagram, shapes) };
     });
 
 export const transformItems =
@@ -70,6 +79,18 @@ export function buildAppearance(builder: ActionReducerMapBuilder<EditorState>) {
             return state.updateDiagram(diagramId, diagram => {
                 const { key, value } = appearance;
 
+                // 样式记忆(1.0.4-5):用户改过某类形状的某个外观键,就把它记下来,
+                // 今后拖入同类型形状时默认套用。记录放在 reducer 里是因为所有 UI 路径
+                // (属性面板/双击改字/自定义属性/宽高比锁)都汇到这里,一处记录全覆盖。
+                // 刻意副作用:写入 localStorage,幂等且不抛错,不影响 redux 纯度要求。
+                for (const id of itemIds) {
+                    const item = diagram.items.get(id);
+
+                    if (item?.type === 'Shape') {
+                        rememberStyle(item.renderer, key, value);
+                    }
+                }
+
                 const next = diagram.updateItems(itemIds, item => {
                     const plugin = PluginRegistry.get(item.renderer)?.plugin;
                     
@@ -91,6 +112,46 @@ export function buildAppearance(builder: ActionReducerMapBuilder<EditorState>) {
                 }
 
                 return next;
+            });
+        })
+        .addCase(resetItemsAppearance, (state, action) => {
+            const { diagramId, itemIds } = action.payload;
+
+            return state.updateDiagram(diagramId, diagram => {
+                // 恢复默认:清掉该类型形状的样式记忆 + 把选中形状的外观重置回默认。
+                const renderers = new Set<string>();
+
+                for (const id of itemIds) {
+                    const item = diagram.items.get(id);
+
+                    if (item?.type === 'Shape') {
+                        renderers.add(item.renderer);
+                    }
+                }
+
+                for (const renderer of renderers) {
+                    forgetStyle(renderer);
+                }
+
+                return diagram.updateItems(itemIds, item => {
+                    if (item.type !== 'Shape') {
+                        return item;
+                    }
+
+                    const plugin = PluginRegistry.get(item.renderer)?.plugin;
+
+                    if (!plugin) {
+                        return item;
+                    }
+
+                    // 保留几何(transform),appearance 整体换回插件默认值
+                    // (ImmutableMap.empty 起底,避免残留旧键)。
+                    return item.replaceAppearance(ImmutableMap.empty<any>().mutate(mutator => {
+                        for (const [key, value] of Object.entries(plugin.defaultAppearance() || {})) {
+                            mutator.set(key, value);
+                        }
+                    }));
+                });
             });
         })
         .addCase(transformItems, (state, action) => {

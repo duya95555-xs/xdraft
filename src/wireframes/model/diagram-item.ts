@@ -197,7 +197,10 @@ export class DiagramItem extends Record<Props> implements Shape {
     }
 
     public getAppearance(key: string) {
-        return this.appearance.get(key);
+        // Group 没有 appearance(createGroup 不设这个字段,setAppearance/replaceAppearance
+        // 也对 Group 直接 no-op),所以这里必须容忍 undefined —— 例如组合后新组成为唯一选中项,
+        // EditorView 访问 selectedItem.textDisabled 时走到这里。
+        return this.appearance?.get(key);
     }
 
     public static createGroup(setup: InitialGroupProps = {}) {
