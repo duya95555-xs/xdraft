@@ -1,0 +1,43 @@
+@use '@app/style/mixins' as *;
+@use '@app/style/vars' as *;
+
+.recent {
+    &-caption {
+        padding: 10px 10px 0 10px;
+        font-size: 12px;
+        font-weight: 600;
+        opacity: 0.65;
+    }
+
+    // "本机文档"标题行: 左边是标题+当前目录, 右边是操作按钮。
+    &-caption-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    &-actions {
+        display: flex;
+        gap: 4px;
+        opacity: 1;
+    }
+
+    // 当前保存目录: 字号更小、颜色更淡, 超长省略。
+    &-dir {
+        font-weight: 400;
+        font-size: 11px;
+        opacity: 0.8;
+    }
+
+    &-list {
+        flex-grow: 1;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        padding: 10px;
+    }
+
+    &-item {
+        margin-bottom: 15px;
+    }
+}

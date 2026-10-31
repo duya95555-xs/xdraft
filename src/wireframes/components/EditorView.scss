@@ -1,0 +1,32 @@
+@use '@app/style/mixins' as *;
+@use '@app/style/vars' as *;
+
+.editor {
+    &-view {
+        background: $color-background;
+        border: 0;
+        border-radius: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    &-diagram {
+        height: 100%;
+    }
+
+    &-content {
+        & > div {
+            height: 100%;
+        }
+    }
+}
+
+// Context menu popup is rendered on the body level; keep it inside the window.
+// The max height is set per right click from the free space of the chosen side
+// (see EditorView.doContextMenu); the menu scrolls internally when needed.
+.editor-dropdown {
+    .ant-dropdown-menu {
+        max-height: var(--editor-menu-max-height, calc(100vh - 24px));
+        overflow-y: auto;
+    }
+}

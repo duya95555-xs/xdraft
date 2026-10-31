@@ -1,0 +1,78 @@
+# xdraft
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Electron](https://img.shields.io/badge/Electron-35-47848F.svg)](https://www.electronjs.org/)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)](#打包)
+
+[English](./README.md) | **简体中文**
+
+xdraft 是基于开源线框图工具 [mydraft.cc](https://mydraft.cc)（作者 Sebastian Stehle，仓库 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)）二次开发的版本：Electron 桌面封装 + 离线优先改造，可运行于 **Windows、Linux（x64 / arm64，含 UOS、Deepin 等国产系统）与 macOS**。
+
+> **致谢与尊重**：本项目的全部基础能力来自原开源项目 [mydraft-cc/ui](https://github.com/mydraft-cc/ui)（MIT 许可证）。这是由 [@duya95555-xs](https://github.com/duya95555-xs) 个人维护的**非官方**发行版，与原项目及其作者无关联、未获其背书；mydraft 名称与品牌归原权利人所有。
+
+![xdraft 编辑器](./docs/screenshot.png)
+
+## 功能特性
+
+- **桌面应用** —— Windows（NSIS 安装包 / 便携版）、Linux（deb / AppImage）、macOS（dmg，见下文）
+- **离线优先** —— 图标字体（Font Awesome / Material Icons）以 base64 内联进应用：零 CDN 请求，离线机器不白屏、图标不丢失；导出 PNG 时字体 CSS 同步写入 SVG，导出结果同样完整
+- **流程连线增强** —— 线型（实线 / 虚线 / 点线）、自定义颜色、箭头样式（无 / 单侧 / 双箭头）
+- **v1.0.4 新增** —— 8 项功能（基于 1.0.3 代码基底合并模板库，不含 AI）：
+  - **指定保存目录** —— 「最近」面板可设置保存目录，此后新文件一直存到该目录，直到再次更改
+  - **最近清单导出** —— 一键导出最近清单 CSV（含 name / savedAt / path）
+  - **组合死机修复** —— 增加环检测，嵌套 / 反复组合不再卡死
+  - **形状按 Axure 排序** —— 形状面板分类顺序与 Axure 一致
+  - **形状样式记忆** —— 同类形状自动套用上次样式；「恢复默认样式」可随时还原
+  - **字号自由输入** —— 字号框直接键入数字、回车生效
+  - **顶部问题记录** —— 顶部灯泡入口记录问题，可随时查看、复制
+  - **全程日志面板** —— 右上角日志面板全程记录操作日志，支持复制 / 下载 / 清空
+- **UOS 友好** —— 提供 `slim-build.sh` 精简打包脚本，针对 UOS 等 Debian 系 arm64 系统优化体积
+- 保留原工具全部线框能力：形状库、图标面板、导出 PNG / HTML、中英文界面
+
+## 下载
+
+直链下载（v1.0.2）。**v1.0.4** 安装包（Windows / Linux arm64 / macOS）由 CI 自动构建并发布到 [Releases](https://github.com/duya95555-xs/xdraft/releases) 页面：
+
+| 文件 | 平台 | 说明 |
+|---|---|---|
+| [xdraft-Setup-1.0.1-win-x64.exe](https://github.com/duya95555-xs/xdraft/releases/download/v1.0.2/xdraft-Setup-1.0.1-win-x64.exe) | Windows x64 | NSIS 安装版（可选安装目录、自动创建快捷方式） |
+| [xdraft-1.0.1-portable-win-x64.exe](https://github.com/duya95555-xs/xdraft/releases/download/v1.0.2/xdraft-1.0.1-portable-win-x64.exe) | Windows x64 | 便携版，单文件免安装 |
+| [xdraft_1.0.2_arm64.deb](https://github.com/duya95555-xs/xdraft/releases/download/v1.0.2/xdraft_1.0.2_arm64.deb) | Linux arm64（UOS / deepin / Debian 系） | `sudo dpkg -i xdraft_1.0.2_arm64.deb` |
+
+更新版本见 [Releases](https://github.com/duya95555-xs/xdraft/releases) 页面；Linux x64 / macOS 请按[打包](#打包)章节的命令自行构建。
+
+## 开发
+
+需要 Node.js ≥ 18。
+
+```bash
+npm install            # 安装依赖
+npm run start          # 浏览器开发模式 (vite)
+npm run electron:dev   # 桌面开发模式 (vite + electron)
+npm run build          # 生产构建 (tsc + vite)
+```
+
+> 离线 / 弱网环境：`npm install` 前 set `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/`，避免 Electron 二进制下载缓慢或失败。
+
+## 打包
+
+| 平台 | 命令 | 产物 |
+|---|---|---|
+| Linux arm64（UOS / Deepin） | `npm run electron:build:linux-arm64` 或 `bash slim-build.sh` | deb（xz 重压缩） |
+| Linux x64 | `npm run electron:build:linux-x64` | deb |
+| Windows | `npm run electron:build:win` | NSIS 安装包 / 便携版 |
+| macOS | `npx electron-builder --mac` | dmg |
+
+说明：
+
+- `slim-build.sh` 会先重新生成内联图标字体数据，再以不打包 `node_modules` 的方式构建，并用 `xz -9` 重压 deb —— **UOS 上推荐走这条路径**。
+- macOS 暂无专用 npm script：先 `ELECTRON=true npm run build`，再 `npx electron-builder --mac`。需要的话可在 `electron-builder-optimized.yml` 补 `mac`（dmg target）配置。
+- 构建产物输出到 `release-slim/`（见 `electron-builder-optimized.yml`）。
+
+## 说明
+
+本项目是个人利用业余时间维护的作品，作者水平有限，难免有 bug 与考虑不周之处，还请多多担待。遇到问题欢迎[提 issue](https://github.com/duya95555-xs/xdraft/issues) 反馈，也欢迎直接 fork 一份自己动手修 —— PR 随时欢迎。
+
+## 许可证
+
+[MIT](./LICENSE) —— 版权 (c) mydraft.cc (Sebastian Stehle) and contributors，以及 (c) 2026 duya95555-xs（xdraft edition）。

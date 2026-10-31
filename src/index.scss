@@ -1,0 +1,21 @@
+/* Custom styles */
+@use 'style/common';
+
+/* Custom icon set */
+@import 'style/icomoon/style.css';
+
+// ── Windows 对话框按钮顺序 ─────────────────────────────────────────────────
+// antd 默认 footer 是 [取消, 确定](Mac 习惯);Windows 习惯主按钮在左、取消在右。
+// 自定义 footer 的弹框(如关窗保护)在组件内已按 Windows 顺序排列,不受此处影响。
+.ant-modal {
+    .ant-modal-footer {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+        column-gap: 8px;
+
+        .ant-btn + .ant-btn {
+            margin-inline-start: 0;
+        }
+    }
+}

@@ -1,0 +1,34 @@
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+.vite/
+
+# 日志与临时文件
+*.log
+npm-debug.log*
+*.PID
+
+# 环境与密钥（如有）
+.env
+.env.*
+*.local
+
+# 编辑器与系统文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+cook-debug-*.png
+cook-logo-gradient.png
+cook-favicon-xd.png
+mydraft-1.0.1-src-*.tar.gz
+cook-*.png
+slim-build.sh.save
+
+# 测试仓库与打包产物
+dist-electron/
+release/
+*.tar.gz
+.workbuddy/
+templates/

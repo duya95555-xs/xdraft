@@ -1,0 +1,76 @@
+@use '@app/style/mixins' as *;
+@use '@app/style/vars' as *;
+
+$size: 22px;
+
+.color-picker {
+    &-colors {
+        @include clearfix;
+        max-width: 210px;
+        min-width: 210px;
+
+        & .color-picker-color {
+            margin-right: 2px;
+            margin-bottom: 2px;
+        }
+    }
+
+    &-color {
+        & {
+            @include circle($size);
+            align-items: center;
+            background: $color-white;
+            border: 1px solid $color-input;
+            border-radius: $size;
+            box-sizing: border-box;
+            display: inline-flex;
+            justify-content: center;
+        }
+
+        &.rect {
+            background: transparent;
+            border-color: transparent;
+            border-radius: 0;
+            float: none;
+        }
+
+        &-inner {
+            @include circle($size - 4px);
+        }
+
+        &:hover {
+            border-color: #555;
+        }
+
+        &.selected {
+            border-color: $color-theme-blue;
+        }
+    }
+
+    &-tabs {
+        margin-top: -10px;
+        max-height: 400px;
+        min-height: 400px;
+    }
+}
+
+.color-picker-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.sketch-picker {
+    background: 'none' !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+span {
+    &.color-picker-button {
+        padding: 0 !important;
+    }
+}
