@@ -32,4 +32,5 @@
 - `templates/` 为模板库数据目录（体积大，已 gitignore）；放到 `xdraft-1.0.4/templates/` 后 `tools/local-server.mjs` 自动识别，没有不影响其他功能
 - 全局 `gh-proxy.com` 的 git 代理规则已删除（会剥掉认证头导致推送失败）；github.com 直连正常，凭据在 `~/.git-credentials`
 - 本仓库的写权限 token 是 fine-grained PAT，仅授权 `xdraft-test`；对 `duya95555-xs/xdraft`（旧仓库）只读
+- **token 有效期 60 天**（约 2026-12-31 到期）：到期后推送会报 401/403 认证失败，需到 https://github.com/settings/personal-access-tokens 续期或换新 token，并同步更新本机 `~/.git-credentials` 里的密码字段
 - 打包命令：`npm run electron:build:linux-arm64`（UOS 推荐 `bash slim-build.sh`，产物在 `release-slim/`）；发版勿动 workflow 的 `--publish never`
