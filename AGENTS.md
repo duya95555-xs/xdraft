@@ -4,9 +4,10 @@
 
 ## 代码管理（必须遵守）
 
-- 所有代码改动**必须 git 提交并推送到 `origin`（xdraft-test 仓库）**，不允许只在本地改完就结束
-- 日常：改完 → `git add -A`（或按文件）→ 有意义的提交信息（单行说清做了什么）→ `git push origin main`
-- 推送前如远端可能有他人/网页改动，先 `git pull` 合并
+- **先同步后动手**：任何修改前先 `git pull` 把远端最新代码合并到本地，不允许在过时的代码上改
+- 改动完成 → `git add -A`（或按文件）→ 有意义的提交信息（单行说清做了什么）→ **只提交到本地**
+- **禁止自动推送**：推送门槛是用户完整验证并通过；用户明确说"推送"后才执行 `git push`
+- 推送前先确认远端有无新改动，有则先合并再推
 - 大改动或试验性功能：开分支（`feat/xxx` 等），完成后再合回 main
 - 提交粒度：一次提交只做一件事，不混入无关改动
 - 禁止绕过规范用 tar 包传递代码更新；源码包仅在发版时按需生成（见《部署说明.md》）
@@ -21,8 +22,9 @@
    - `README.md` / `README.zh-CN.md` 的功能特性列表、版本/下载信息
    - 若改了打包配置，`README.electron.md` 一并更新
 3. 按《部署说明.md:56-66》的验证清单逐项验证（tsc 零错误、功能实测）
-4. `git add -A && git commit -m "release: vX.Y.Z"` → `git tag vX.Y.Z` → `git push origin main vX.Y.Z`
-5. 确认 CI（.github/workflows/build.yml）构建成功、安装包挂到 Release
+4. `git add -A && git commit -m "release: vX.Y.Z"` → `git tag vX.Y.Z` → **暂停，交用户完整验证**
+5. 用户验证通过后：`git push origin main vX.Y.Z`
+6. 确认 CI（.github/workflows/build.yml）构建成功、安装包挂到 Release
 
 版本号规则：tag = package.json version = 文档中的版本，三者必须一致。
 
