@@ -438,7 +438,9 @@ export const Shapes = () => {
     }, [myShapes, searching, shapesFilter]);
 
     const myShapeKeyBuilder = React.useCallback((master: MyShapeMaster) => {
-        return `${master.id}-${iconSize.width}`;
+        // 名字也要进 key: Grid 按 key 做模块级单元格缓存(见 core/react/Grid.tsx 的 cache),
+        // key 不含名字时改名后命中旧缓存,列表一直显示旧名字,必须 F5 才刷新。
+        return `${master.id}-${master.name}-${iconSize.width}`;
     }, [iconSize.width]);
 
     return (
