@@ -50,6 +50,7 @@ const AXURE_ORDER_INDEX = new Map(AXURE_SHAPE_ORDER.map((name, i) => [name, i]))
 const GROUP_FLOWCHART = 'flowchart';
 const GROUP_FORM = 'form';
 const GROUP_MINE = 'mine';
+const ALL_GROUPS = [GROUP_MINE, GROUP_FORM, GROUP_FLOWCHART];
 const COLLAPSED_STORAGE_KEY = 'xdraft.assetGroups.collapsed';
 
 const keyBuilder = (shape: ShapeInfo, iconWidth: number) => {
@@ -275,15 +276,28 @@ export const Shapes = () => {
     const [collapsedGroups, setCollapsedGroups] = React.useState<{ [key: string]: boolean }>(() => {
         // 持久化到 localStorage:切到别的面板(图标/大纲/页面)再切回来时保持折叠状态。
         try {
-            return JSON.parse(window.localStorage.getItem(COLLAPSED_STORAGE_KEY) || '{}');
+            const stored = JSON.parse(window.localStorage.getItem(COLLAPSED_STORAGE_KEY) || 'null');
+
+            if (stored && typeof stored === 'object') {
+                return stored;
+            }
         } catch {
-            return {};
+            // 没存过或数据损坏:走下面的默认。
         }
+
+        // 手风琴默认只展开表单形状(主形状库),另外两个收起。
+        return { [GROUP_MINE]: true, [GROUP_FLOWCHART]: true };
     });
 
     const doToggleGroup = useEventCallback((group: string) => {
         setCollapsedGroups(value => {
-            const next = { ...value, [group]: !value[group] };
+            // 手风琴语义:展开一个分组时收起其余两个;已展开的分组再点一次则全部收起。
+            const expanding = !!value[group];
+            const next: { [key: string]: boolean } = {};
+
+            for (const g of ALL_GROUPS) {
+                next[g] = expanding ? g !== group : true;
+            }
 
             try {
                 window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(next));

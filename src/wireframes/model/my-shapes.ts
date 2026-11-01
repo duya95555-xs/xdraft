@@ -82,7 +82,8 @@ export function subscribeMyShapes(cb: () => void): () => void {
 export function addMyShape(name: string, data: { visuals: any[]; groups: any[] }): MyShapeMaster | null {
     const master: MyShapeMaster = {
         id: MathHelper.nextId(),
-        name: name.trim() || 'My Shape',
+        // 组合往往既没有 name 也没有 renderer,调用方可能传 undefined,兜底成默认名。
+        name: (name ?? '').trim() || 'My Shape',
         createdAt: Date.now(),
         data,
     };
@@ -127,7 +128,10 @@ export function captureSelectionAsMyShape(
     let name: string;
 
     if (roots.length === 1) {
-        name = roots[0].name || roots[0].renderer;
+        // 单选时优先用图元自己的名字;组合通常 name/renderer 都为空,
+        // 这种情况退回默认组名 —— 否则 addMyShape 拿到 undefined 直接抛错,
+        // 表现为"点添加没反应,组合根本没存进去"。
+        name = roots[0].name || roots[0].renderer || defaultGroupName;
     } else {
         name = defaultGroupName;
     }

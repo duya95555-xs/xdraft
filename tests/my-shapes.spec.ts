@@ -14,6 +14,7 @@ import {
     addShape,
     captureSelectionAsMyShape,
     getDiagram,
+    groupItems,
     listMyShapes,
     masterBounds,
     masterOffsetToCenter,
@@ -132,5 +133,60 @@ describe('MyShapes (master library)', () => {
         const result = captureSelectionAsMyShape(diagram, [], '组合');
 
         expect(result).toEqual({ error: 'empty' });
+    });
+
+    it('should capture a group and keep edited text/colors on insert', () => {
+        const diagramId = freshPage();
+
+        // 两个形状都改过外观(文字/填充色/字号),再组合。
+        store.dispatch(addShape(diagramId, 'Label', {
+            position: { x: 100, y: 100 },
+            appearance: { TEXT: 'Hello', FILL_COLOR: '#ff0000', FONT_SIZE: 24 },
+        }));
+        store.dispatch(addShape(diagramId, 'Button', {
+            position: { x: 300, y: 200 },
+            appearance: { FILL_COLOR: '#00ff00' },
+        }));
+
+        const page1 = currentPage();
+        const shapeIds = page1.rootIds.values as string[];
+
+        store.dispatch(groupItems(diagramId, shapeIds));
+
+        const page2 = currentPage();
+        const groupIds = (page2.rootIds.values as string[]).filter(id => !shapeIds.includes(id));
+
+        expect(groupIds.length).toBe(1);
+
+        // 组合既没有 name 也没有 renderer,这里回归"捕获不再抛错、能正常入库"。
+        store.dispatch(selectItems(diagramId, groupIds));
+
+        const diagram = getDiagram(state())!;
+        const result = captureSelectionAsMyShape(diagram, diagram.selectedIds.values as string[], '组合');
+
+        expect('master' in result).toBe(true);
+
+        const master = listMyShapes()[0];
+
+        expect(master).toBeDefined();
+        expect(master.name).toBe('组合');
+
+        // 插入后逐个断言:编辑过的文字/颜色/字号全部保留。
+        store.dispatch(pasteItems(diagramId, JSON.stringify(master.data), { x: 500, y: 400 }));
+
+        const page3 = currentPage();
+        const insertedGroup = (page3.rootIds.values as string[])
+            .map(id => page3.items.get(id))
+            .find(i => i && i.type === 'Group' && !groupIds.includes(i.id));
+
+        expect(insertedGroup).toBeDefined();
+
+        const label = insertedGroup.childIds.values.map(id => page3.items.get(id)).find(i => i.renderer === 'Label');
+        const button = insertedGroup.childIds.values.map(id => page3.items.get(id)).find(i => i.renderer === 'Button');
+
+        expect(label.appearance.get('TEXT')).toBe('Hello');
+        expect(label.appearance.get('FILL_COLOR')).toBe('#ff0000');
+        expect(label.appearance.get('FONT_SIZE')).toBe(24);
+        expect(button.appearance.get('FILL_COLOR')).toBe('#00ff00');
     });
 });
