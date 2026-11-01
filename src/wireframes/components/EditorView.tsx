@@ -5,7 +5,7 @@
  * Copyright (c) Sebastian Stehle. All rights reserved.
 */
 
-import { Dropdown, MenuProps } from 'antd';
+import { Dropdown, MenuProps, message } from 'antd';
 import * as React from 'react';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
@@ -13,7 +13,7 @@ import { Canvas, Control, loadImagesToClipboardItems, Rect2, Shortcut, useClipbo
 import { useAppDispatch } from '@app/store';
 import { texts } from '@app/texts';
 import { ShapeSource } from '@app/wireframes/interface';
-import { addConnector, addShape, buildConfigFormFromJson, changeItemsAppearance, cropImage, Diagram, DiagramItem, DiagramItemSet, getDiagram, getDiagramId, getEditor, getSelection, parseCrop, PluginRegistry, reconnectConnector, resetCrop, selectItems, setConnectorWaypoints, splitImage, Transform, transformItems, useStore } from '@app/wireframes/model';
+import { addConnector, addShape, buildConfigFormFromJson, captureSelectionAsMyShape, changeItemsAppearance, cropImage, Diagram, DiagramItem, DiagramItemSet, getDiagram, getDiagramId, getEditor, getSelection, listMyShapes, masterOffsetToCenter, parseCrop, pasteItems, PluginRegistry, reconnectConnector, resetCrop, selectItems, setConnectorWaypoints, splitImage, Transform, transformItems, useStore } from '@app/wireframes/model';
 import { Editor, EditorHandle } from '@app/wireframes/renderer/Editor';
 import { nearestAnchor, nearestAnchorSide, sideAnchorPoint, Side } from '@app/wireframes/shapes/neutral/_connector-routing';
 import { toRectLike } from '@app/wireframes/shapes/neutral/_connector';
@@ -463,6 +463,19 @@ export const EditorViewInner = ({ panMode, connectMode, onPanModeChange, viewBox
         }
     }, [connectMode]);
 
+    // 添加到「我的形状」:把当前选中的图元(含组合)序列化存入本地母版库。
+    const doSaveMyShape = useEventCallback(() => {
+        const result = captureSelectionAsMyShape(diagram, selectionSet.selectedItems.map(item => item.id), texts.common.myShapesGroupDefault);
+
+        if ('master' in result) {
+            message.success(texts.common.myShapesAdded);
+        } else if (result.error === 'empty') {
+            message.info(texts.common.myShapesSelectFirst);
+        } else {
+            message.error(texts.common.myShapesSaveFailed);
+        }
+    });
+
     // A single left click (with less than a small displacement) on the empty canvas leaves the pan (drag) mode.
     const doMouseUp = useEventCallback((event: React.MouseEvent) => {
         doConnectMouseUp(event);
@@ -503,6 +516,13 @@ export const EditorViewInner = ({ panMode, connectMode, onPanModeChange, viewBox
                 title: canSplit ? texts.common.splitImageHint : undefined,
                 disabled: !canSplit,
                 onClick: doStartSplit,
+            },
+            { type: 'divider' },
+            {
+                key: 'saveMyShape',
+                label: texts.common.myShapesAdd,
+                disabled: selectionSet.selectedItems.length === 0,
+                onClick: doSaveMyShape,
             },
         ],
     };
@@ -564,6 +584,7 @@ export const EditorViewInner = ({ panMode, connectMode, onPanModeChange, viewBox
             NativeTypes.TEXT,
             'DND_ASSET',
             'DND_ICON',
+            'DND_MY_SHAPE',
         ],
         drop: async (item: any, monitor: DropTargetMonitor) => {
             if (!monitor || !renderRef.current || !selectedDiagramId) {
@@ -597,6 +618,16 @@ export const EditorViewInner = ({ panMode, connectMode, onPanModeChange, viewBox
                 case 'DND_ASSET':
                     dispatch(addShape(selectedDiagramId, item['name'], { position: { x, y } }));
                     break;
+                case 'DND_MY_SHAPE': {
+                    // 「我的形状」插入:整体序列化数据走 pasteItems(id 重生成、连线重映射),
+                    // 母版中心对齐鼠标落点。
+                    const master = listMyShapes().find(m => m.id === item['id']);
+
+                    if (master) {
+                        dispatch(pasteItems(selectedDiagramId, JSON.stringify(master.data), masterOffsetToCenter(master.data, x, y)));
+                    }
+                    break;
+                }
                 case 'DND_ICON':
                     doPaste([{ type: 'Icon', ...item }], x, y);
                     break;

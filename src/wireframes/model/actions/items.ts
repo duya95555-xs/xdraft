@@ -51,8 +51,10 @@ export const renameItems =
         return { payload: createItemsAction(diagram, items, { name }) };
     });
 
+// offset 支持两种形态:数字 = 对角线偏移(剪贴板粘贴的老用法);
+// {x,y} = 任意向量(「我的形状」插入时把母版对齐到落点用)。
 export const pasteItems =
-    createAction('items/paste', (diagram: DiagramRef, json: string, offset = 0) => {
+    createAction('items/paste', (diagram: DiagramRef, json: string, offset: number | { x: number; y: number } = 0) => {
         return { payload: createDiagramAction(diagram, { json: Serializer.tryGenerateNewIds(json), offset }) };
     });
 
@@ -154,6 +156,9 @@ export function buildItems(builder: ActionReducerMapBuilder<EditorState>) {
         .addCase(pasteItems, (state, action) => {
             const { diagramId, json, offset } = action.payload;
 
+            const offsetX = typeof offset === 'number' ? offset : offset.x;
+            const offsetY = typeof offset === 'number' ? offset : offset.y;
+
             return state.updateDiagram(diagramId, diagram => {
                 // Serializer 已把 CONNECTOR_SOURCE / TARGET 重映射到新 id(CONN-003)。
                 const set = Serializer.deserializeSet(JSON.parse(json));
@@ -162,7 +167,7 @@ export function buildItems(builder: ActionReducerMapBuilder<EditorState>) {
 
                 diagram = diagram.updateItems([...set.nested.keys()], item => {
                     const boundsOld = item.bounds(diagram);
-                    const boundsNew = boundsOld.moveBy(new Vec2(offset, offset));
+                    const boundsNew = boundsOld.moveBy(new Vec2(offsetX, offsetY));
 
                     let result = item.transformByBounds(boundsOld, boundsNew);
 
@@ -170,7 +175,7 @@ export function buildItems(builder: ActionReducerMapBuilder<EditorState>) {
                     const waypoints = connectorWaypoints(result);
 
                     if (waypoints.length > 0) {
-                        result = result.setAppearance(Connector.WAYPOINTS, waypoints.map(p => ({ x: p.x + offset, y: p.y + offset })));
+                        result = result.setAppearance(Connector.WAYPOINTS, waypoints.map(p => ({ x: p.x + offsetX, y: p.y + offsetY })));
                     }
 
                     return result;

@@ -81,12 +81,18 @@
 
         // 表单形状分组(其余全部图元)。
         &-form {
-            order: 1;
+            order: 2;
         }
 
         // 流程图形状分组。
         &-flowchart {
-            order: 2;
+            order: 3;
+        }
+
+        // 我的形状(母版库)分组,恒在最上。
+        &-mine {
+            order: 0;
+            flex: 0 1 auto;
         }
 
         &-collapsed {
@@ -139,4 +145,43 @@
             min-height: 0;
         }
     }
+}
+
+// ── 我的形状(母版库)────────────────────────────────────────────────────
+.asset-myshape {
+    // 卡片内定位悬停操作按钮用。
+    position: relative;
+
+    &-placeholder {
+        align-items: center;
+        color: $color-text-decent;
+        display: flex;
+        flex-grow: 1;
+        font-size: 34px;
+        height: 84px;
+        justify-content: center;
+    }
+
+    &-actions {
+        display: none;
+        gap: 2px;
+        position: absolute;
+        right: 2px;
+        top: 2px;
+
+        .ant-btn {
+            background: rgba(255, 255, 255, 0.9);
+        }
+    }
+
+    &:hover .asset-myshape-actions {
+        display: flex;
+    }
+}
+
+.asset-myshape-empty {
+    color: $color-text-decent;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 10px 12px;
 }

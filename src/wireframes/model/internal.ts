@@ -17,6 +17,7 @@ export * from './diagram';
 export * from './editor-state';
 export * from './factories';
 export * from './loading-state';
+export * from './my-shapes';
 export * from './registry';
 export * from './serializer';
 export * from './snap-manager';

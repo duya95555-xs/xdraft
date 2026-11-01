@@ -6,7 +6,8 @@
  */
 
 import { SearchOutlined } from '@ant-design/icons';
-import { Input } from 'antd';
+import { Button, Input, message, Modal, Popconfirm } from 'antd';
+import { BlockOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import classNames from 'classnames';
 import * as React from 'react';
 import { useDrag } from 'react-dnd';
@@ -15,7 +16,9 @@ import { useStore as useReduxStore } from 'react-redux';
 import { Grid, useEventCallback, useResizeObserver } from '@app/core';
 import { AppState, useAppDispatch } from '@app/store';
 import { texts } from '@app/texts';
-import { addShape, filterShapes, getDiagramId, getFilteredShapes, getShapesFilter, ShapeInfo, useStore } from '@app/wireframes/model';
+import { captureSelectionAsMyShape, addShape, filterShapes, getDiagram, getDiagramId, getFilteredShapes, getSelection, getShapesFilter, listMyShapes, masterBounds, masterOffsetToCenter, MyShapeMaster, pasteItems, removeMyShape, renameMyShape, ShapeInfo, subscribeMyShapes, useStore } from '@app/wireframes/model';
+import { PluginRegistry } from '@app/wireframes/model';
+import { ShapeRenderer } from '@app/wireframes/shapes/ShapeRenderer';
 import { ShapeImage } from './ShapeImage';
 import './Shapes.scss';
 
@@ -46,6 +49,7 @@ const AXURE_ORDER_INDEX = new Map(AXURE_SHAPE_ORDER.map((name, i) => [name, i]))
 // 分组标识(用于折叠状态)。折叠状态持久化到 localStorage 的键。
 const GROUP_FLOWCHART = 'flowchart';
 const GROUP_FORM = 'form';
+const GROUP_MINE = 'mine';
 const COLLAPSED_STORAGE_KEY = 'xdraft.assetGroups.collapsed';
 
 const keyBuilder = (shape: ShapeInfo, iconWidth: number) => {
@@ -109,6 +113,102 @@ const ShapeCell = React.memo((props: ShapeCellProps) => {
             </div>
 
             <div className='asset-shape-title'>{shape.displayName}</div>
+        </div>
+    );
+});
+
+interface MyShapeCellProps {
+    // The saved master.
+    master: MyShapeMaster;
+
+    // The size of the preview image.
+    iconSize: { width: number; height: number };
+
+    // Inserts the master into the diagram (double click).
+    onInsert: (master: MyShapeMaster) => void;
+
+    // Opens the rename dialog.
+    onRename: (master: MyShapeMaster) => void;
+
+    // Deletes the master (after confirmation).
+    onDelete: (master: MyShapeMaster) => void;
+}
+
+// 「我的形状」卡片:可拖拽、双击插入,悬停显示重命名/删除。
+const MyShapeCell = React.memo((props: MyShapeCellProps) => {
+    const { iconSize, master, onDelete, onInsert, onRename } = props;
+
+    const [, drag] = useDrag({
+        item: { id: master.id },
+        previewOptions: {
+            anchorX: 0,
+            anchorY: 0,
+        },
+        type: 'DND_MY_SHAPE',
+    });
+
+    const doInsert = React.useCallback(() => {
+        onInsert(master);
+    }, [master, onInsert]);
+
+    const doRename = React.useCallback((event: React.MouseEvent) => {
+        event.stopPropagation();
+        onRename(master);
+    }, [master, onRename]);
+
+    const doDelete = React.useCallback((event: React.MouseEvent) => {
+        // 阻止冒泡:避免触发卡片的双击/拖拽,以及分组标题的折叠。
+        event.stopPropagation();
+    }, []);
+
+    // 预览:单图元母版用真实渲染器 + 保存时的外观;组合/多图元用占位图标。
+    const preview = React.useMemo(() => {
+        const visuals = master.data?.visuals || [];
+        const groups = master.data?.groups || [];
+
+        if (visuals.length === 1 && groups.length === 0) {
+            const registration = PluginRegistry.get(visuals[0].renderer);
+
+            if (registration) {
+                return (
+                    <ShapeRenderer
+                        appearance={visuals[0].appearance}
+                        desiredHeight={iconSize.height}
+                        desiredWidth={iconSize.width}
+                        plugin={registration.plugin}
+                        usePreviewOffset
+                        usePreviewSize
+                    />
+                );
+            }
+        }
+
+        return (
+            <div className='asset-myshape-placeholder'>
+                <BlockOutlined />
+            </div>
+        );
+    }, [iconSize.height, iconSize.width, master]);
+
+    return (
+        <div ref={drag} className='asset-shape asset-myshape' onDoubleClick={doInsert}>
+            <div className='asset-shape-image-row'>
+                {preview}
+            </div>
+
+            <div className='asset-shape-title'>{master.name}</div>
+
+            <div className='asset-myshape-actions'>
+                <Button icon={<EditOutlined />} onClick={doRename} size='small' title={texts.common.myShapesRename} type='text' />
+
+                <Popconfirm
+                    okText={texts.common.delete}
+                    cancelText={texts.common.dialogCancel}
+                    onConfirm={() => onDelete(master)}
+                    title={texts.common.myShapesDeleteConfirm}>
+                    <Button danger icon={<DeleteOutlined />} onClick={doDelete} size='small' title={texts.common.myShapesDelete} type='text' />
+                </Popconfirm>
+            </div>
         </div>
     );
 });
@@ -252,6 +352,81 @@ export const Shapes = () => {
         doToggleGroup(GROUP_FORM);
     });
 
+    // ── 我的形状(母版库)────────────────────────────────────────────────
+    const myShapes = React.useSyncExternalStore(subscribeMyShapes, listMyShapes);
+    const diagram = useStore(getDiagram);
+    const selection = useStore(getSelection);
+
+    const [renamingMaster, setRenamingMaster] = React.useState<MyShapeMaster | null>(null);
+    const [renameValue, setRenameValue] = React.useState('');
+
+    // 把画布上选中的图元(含组合)捕获为我的形状。
+    const doCaptureMyShape = useEventCallback(() => {
+        if (!diagram) {
+            return;
+        }
+
+        const result = captureSelectionAsMyShape(diagram, selection.selectedItems.map(item => item.id), texts.common.myShapesGroupDefault);
+
+        if ('master' in result) {
+            message.success(texts.common.myShapesAdded);
+        } else if (result.error === 'empty') {
+            message.info(texts.common.myShapesSelectFirst);
+        } else {
+            message.error(texts.common.myShapesSaveFailed);
+        }
+    });
+
+    // 插入母版:整体数据走 pasteItems,双击时外接框左上角对齐 (100,100)。
+    const doInsertMyShape = useEventCallback((master: MyShapeMaster) => {
+        const selectedDiagramId = getDiagramId(store.getState());
+
+        if (!selectedDiagramId) {
+            return;
+        }
+
+        const bounds = masterBounds(master.data);
+        const offset = masterOffsetToCenter(master.data, 100 + bounds.width / 2, 100 + bounds.height / 2);
+
+        dispatch(pasteItems(selectedDiagramId, JSON.stringify(master.data), offset));
+    });
+
+    const doDeleteMyShape = useEventCallback((master: MyShapeMaster) => {
+        removeMyShape(master.id);
+    });
+
+    const doOpenRename = useEventCallback((master: MyShapeMaster) => {
+        setRenamingMaster(master);
+        setRenameValue(master.name);
+    });
+
+    const doConfirmRename = useEventCallback(() => {
+        if (renamingMaster) {
+            renameMyShape(renamingMaster.id, renameValue);
+        }
+
+        setRenamingMaster(null);
+    });
+
+    const renderMyShapeCell = React.useCallback((master: MyShapeMaster) => {
+        return <MyShapeCell iconSize={iconSize} master={master} onDelete={doDeleteMyShape} onInsert={doInsertMyShape} onRename={doOpenRename} />;
+    }, [doDeleteMyShape, doInsertMyShape, doOpenRename, iconSize]);
+
+    // 搜索时按名称过滤我的形状。
+    const myShapesFiltered = React.useMemo(() => {
+        if (!searching) {
+            return myShapes;
+        }
+
+        const lower = shapesFilter.toLowerCase();
+
+        return myShapes.filter(m => m.name.toLowerCase().includes(lower));
+    }, [myShapes, searching, shapesFilter]);
+
+    const myShapeKeyBuilder = React.useCallback((master: MyShapeMaster) => {
+        return `${master.id}-${iconSize.width}`;
+    }, [iconSize.width]);
+
     return (
         <>
             <div className='asset-shapes-search'>
@@ -263,6 +438,27 @@ export const Shapes = () => {
             </div>
 
             <div ref={listRef} className='asset-shapes-list-wrapper'>
+                <div className={classNames('asset-shapes-group', 'asset-shapes-group-mine', { 'asset-shapes-group-collapsed': !searching && !!collapsedGroups[GROUP_MINE] })}>
+                    <div className='asset-shapes-group-title' onClick={() => doToggleGroup(GROUP_MINE)}>
+                        <span className='asset-shapes-group-arrow'>{!searching && !!collapsedGroups[GROUP_MINE] ? '▸' : '▾'}</span>
+
+                        <span className='asset-shapes-group-name'>{texts.common.myShapes}</span>
+
+                        <span className='asset-shapes-group-count'>{myShapes.length}</span>
+
+                        <Button icon={<PlusOutlined />} onClick={e => { e.stopPropagation(); doCaptureMyShape(); }} size='small' title={texts.common.myShapesAdd} type='text' />
+                    </div>
+
+                    {!searching && !!collapsedGroups[GROUP_MINE] ? null :
+                        myShapesFiltered.length === 0 ?
+                            (searching ? null : <div className='asset-myshape-empty'>{texts.common.myShapesEmpty}</div>)
+                            :
+                            <div className='asset-shapes-group-body'>
+                                <Grid className='asset-shapes-list' columns={3} items={myShapesFiltered} keyBuilder={myShapeKeyBuilder} renderer={renderMyShapeCell} rowHeight={114} />
+                            </div>
+                    }
+                </div>
+
                 <ShapeGroup
                     collapsed={!searching && !!collapsedGroups[GROUP_FORM]}
                     groupClass='form'
@@ -281,6 +477,20 @@ export const Shapes = () => {
                     shapes={flowchartShapes}
                     title={texts.common.flowchartShapes} />
             </div>
+
+            <Modal
+                cancelText={texts.common.dialogCancel}
+                okText={texts.common.dialogOk}
+                onCancel={() => setRenamingMaster(null)}
+                onOk={doConfirmRename}
+                open={!!renamingMaster}
+                title={texts.common.myShapesRename}>
+                <Input
+                    maxLength={50}
+                    onChange={event => setRenameValue(event.target.value)}
+                    onPressEnter={doConfirmRename}
+                    value={renameValue} />
+            </Modal>
         </>
     );
 };
