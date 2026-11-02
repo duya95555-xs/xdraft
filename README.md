@@ -26,12 +26,14 @@ xdraft is built on top of [mydraft.cc](https://mydraft.cc), the open-source wire
   - **Free font-size input** — type a number in the font-size box and press Enter
   - **Top-bar issue notes** — record problems via the lightbulb; entries can be viewed and copied
   - **Session log panel** — full operation log with copy / download / clear
+- **My Shapes masters** — save any shape or group as a reusable master from the canvas context menu (full styling, size, rotation, text and nested structure kept); drag or double-click to insert; rename / delete in the shapes panel; persisted locally
+- **v1.0.4.1** — rebuild of v1.0.4 with two My Shapes fixes (rename not refreshing the list, groups failing to save) plus accordion-style exclusive expansion in the shape panel
 - **UOS-friendly** — optimized slim build (`slim-build.sh`) targeting Debian-based arm64 systems such as UOS
 - All wireframing capabilities of the original tool: shapes, icon panels, exported PNG/HTML, localization (zh-CN / en-US)
 
 ## Download
 
-Direct downloads (v1.0.2). **v1.0.4** builds (Windows / Linux arm64 / macOS) are produced by CI and attached to the [Releases](https://github.com/duya95555-xs/xdraft/releases) page:
+Direct downloads (v1.0.2). **v1.0.4.1** builds (Windows / Linux arm64 / macOS) are produced by CI and attached to the [Releases](https://github.com/duya95555-xs/xdraft/releases) page:
 
 | File | Platform | Notes |
 |---|---|---|
